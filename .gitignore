@@ -1,0 +1,10 @@
+node_modules
+web-example
+web-example2
+*.log
+*.csv
+*.dat
+*~
+.nodejs
+.datastore
+.idea

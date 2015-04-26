@@ -1,0 +1,28 @@
+{
+  "name": "review-monkey",
+  "version": "1.0.0",
+  "description": "A code review tool with a RESTful API",
+  "main": "server.js",
+  "scripts": {
+    "test": "test",
+    "start": "node server.js"
+  },
+  "keywords": [
+    "code-review",
+    "review",
+    "RESTful",
+    "REST",
+    "diff"
+  ],
+  "author": {
+    "name": "Dimitrios Dentsas",
+    "email": "d.dentsas@googlemail.com"
+  },
+  "license": "Apache 2",
+  "dependencies": {
+    "body-parser": "^1.12.3",
+    "ejs": "^2.3.1",
+    "express": "^4.12.3",
+    "nedb": "^1.1.2"
+  }
+}
