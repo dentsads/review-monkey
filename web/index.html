@@ -28,14 +28,14 @@
         <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
         <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
     <![endif]-->
-    
+
   </head>
   <body class="skin-blue" ng-controller="ReviewListCtrl">
     <div class="wrapper">
 
       <header class="main-header">
         <!-- Logo -->
-        <a href="#" class="logo"><b>Review</b>MONKEY</a>
+        <a href="#/" class="logo"><b>Review</b>MONKEY</a>
         <!-- Header Navbar: style can be found in header.less -->
         <nav class="navbar navbar-static-top" role="navigation">
           <!-- Sidebar toggle button-->
@@ -85,14 +85,24 @@
                 <i class="fa fa-edit"></i> <span>Review Code</span> <i class="fa fa-angle-left pull-right"></i>
               </a>
               <ul class="treeview-menu">
-                <li><a href="pages/reviews/all.html">
+                <li><a href="#/queries/all">
                   <i class="fa fa-circle-o"></i>
                   <span>All</span>
                   <small class="label pull-right bg-red">{{ reviewsLength }}</small>
                    </a>
                 </li>
-                <li><a href="index2.html"><i class="fa fa-circle-o"></i> Active Revisions</a></li>
-                <li><a href="index2.html"><i class="fa fa-circle-o"></i> Authored</a></li>
+                <li><a href="#/queries/active">
+                  <i class="fa fa-circle-o"></i>
+                  <span>Active Revisions</span>
+                  <small class="label pull-right bg-red">{{ reviewsLength }}</small>
+                   </a>
+                </li>
+                <li><a href="#/queries/authored">
+                  <i class="fa fa-circle-o"></i>
+                  <span>Authored</span>
+                  <small class="label pull-right bg-red">{{ reviewsLength }}</small>
+                   </a>
+                </li>
               </ul>
             </li>
             <li class="treeview">
@@ -116,30 +126,12 @@
 
       <!-- Content Wrapper. Contains page content -->
       <div class="content-wrapper">
-        <!-- Content Header (Page header) -->
-        <section class="content-header">
-          <h1>
-            Activity Stream
-            <small>What's new?</small>
-          </h1>
-          <!--
-          <ol class="breadcrumb">
-            <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
-            <li class="active">Dashboard</li>
-          </ol>
-          -->
-        </section>
 
-        <!-- Main content -->
-        <section class="content">
+        <div ng-view></div>
 
-        </section><!-- /.content -->
       </div><!-- /.content-wrapper -->
 
       <footer class="main-footer">
-        <div class="pull-right hidden-xs">
-          <b>Version</b> 2.0
-        </div>
         <strong>Copyright &copy; 2014-2015 <a href="http://dimitrios.dentsas.com">Dimitrios Dentsas</a>.</strong> All rights reserved.
       </footer>
 
@@ -172,7 +164,9 @@
 
     <!-- AngularJS -->
     <script src="angular/js/angular.js" type="text/javascript"></script>
-    <script src="angular/js/controller.js" type="text/javascript"></script>
+    <script src="angular/js/angular-route.js" type="text/javascript"></script>
+    <script src="angular/js/app.js" type="text/javascript"></script>
+    <script src="angular/js/controllers.js" type="text/javascript"></script>
 
   </body>
 </html>

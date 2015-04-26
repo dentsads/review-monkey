@@ -111,10 +111,6 @@ app.get('/', function (req, res) {
   res.render('index');
 })
 
-app.get('/pages/reviews/:review_id', function (req, res) {
-  res.send('Review: ' + req.params.review_id);
-})
-
 var server = app.listen(3000, function () {
 
   var host = server.address().address;
