@@ -1,1 +1,319 @@
-dfghdfghdfghdfgh
+<section class="content">
+  <div class="row">
+    <div class="col-md-12">
+    <div class="box">
+      <div class="box-header with-border">
+        <h3 class="box-title">Review {{reviewDetail[0]._id}}</h3>
+        <h3 class="box-title pull-right"><i class="fa fa-check-circle text-green"></i> Accepted</h3>
+      </div><!-- /.box-header -->
+      <div class="box-body">
+        <div class="row">
+          <div class="col-md-8">
+            <div class="box-body">
+                  <dl class="dl-horizontal">
+                    <dt>Modified on</dt>
+                    <dd>Apr 27, 2015 8:00 PM (2 minutes ago)</dd>
+                    <dt>Author</dt>
+                    <dd>JazzAdmin</dd>
+                    <dt>Reviewers</dt>
+                    <dd><i class="fa fa-check-circle text-green"></i> JazzAdmin</dd>
+                    <dd><i class="fa fa-circle-o"></i> JazzAdmin2</dd>
+                    <dd><i class="fa fa-times-circle text-red"></i> JazzAdmin3</dd>
+                    <dt>Subscribers</dt>
+                    <dd>ddt2si</dd>
+                    <dd>mam3si</dd>
+                    <dt>Repository</dt>
+                    <dd>https://localhost:9443/ccm</dd>
+                    <dt>Source</dt>
+                    <dd>Jazz Repository Workspace</dd>
+                    <dt>Comment</dt>
+                    <dd>Etiam porta sem malesuada magna mollis euismod.</dd>
+                    <dt>Changes</dt>
+                    <dd style="font-family: 'Courier New', Courier, monospace;font-size:small">com.bosch.rtc.server.forecast/src/com/bosch/rtc/server/forecast/impl/ForecastingService.java</dd>
+                    <dd style="font-family: 'Courier New', Courier, monospace;font-size:small">com.bosch.rtc.server.forecast/src/com/bosch/rtc/server/forecast/Main.java</dd>
+                  </dl>
+            </div>
+          </div><!-- /.col -->
+          <div class="col-md-4">
+          </div><!-- /.col -->
+        </div><!-- /.row -->
+      </div><!-- ./box-body -->
+      <div class="box-footer">
+        <div class="row">
+          <div class="col-sm-3 col-xs-6">
+            <div class="description-block border-right">
+              <span class="description-percentage text-green"><i class="fa fa-caret-up"></i> 17%</span>
+              <h5 class="description-header">$35,210.43</h5>
+              <span class="description-text">TOTAL REVENUE</span>
+            </div><!-- /.description-block -->
+          </div><!-- /.col -->
+          <div class="col-sm-3 col-xs-6">
+            <div class="description-block border-right">
+              <span class="description-percentage text-yellow"><i class="fa fa-caret-left"></i> 0%</span>
+              <h5 class="description-header">$10,390.90</h5>
+              <span class="description-text">TOTAL COST</span>
+            </div><!-- /.description-block -->
+          </div><!-- /.col -->
+          <div class="col-sm-3 col-xs-6">
+            <div class="description-block border-right">
+              <span class="description-percentage text-green"><i class="fa fa-caret-up"></i> 20%</span>
+              <h5 class="description-header">$24,813.53</h5>
+              <span class="description-text">TOTAL PROFIT</span>
+            </div><!-- /.description-block -->
+          </div><!-- /.col -->
+          <div class="col-sm-3 col-xs-6">
+            <div class="description-block">
+              <span class="description-percentage text-red"><i class="fa fa-caret-down"></i> 18%</span>
+              <h5 class="description-header">1200</h5>
+              <span class="description-text">GOAL COMPLETIONS</span>
+            </div><!-- /.description-block -->
+          </div>
+        </div><!-- /.row -->
+      </div><!-- /.box-footer -->
+    </div><!-- /.box -->
+  </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+
+      <ul class="timeline">
+
+        <li ng-repeat="review in reviews">
+          <i class="fa ion-checkmark-round bg-green"></i>
+          <div class="timeline-item">
+            <span class="time"><i class="fa fa-clock-o"></i> 12:05</span>
+            <h3 class="timeline-header"><a href="#/reviews/{{review._id}}">{{review.hello}}</a> sent you an email</h3>
+            <div class="timeline-body">
+              {{review.n}}
+            </div>
+            <div class='timeline-footer'>
+              Status:
+              <div class="btn btn-xs bg-green">Accepted</div>
+              Reviewers:
+              <a class="btn btn-primary btn-xs">Read more</a>
+              <a class="btn btn-danger btn-xs">Delete</a>
+
+              <div class="btn-group open  btn-xs pull-right">
+              <button type="button" class="btn btn-default btn-xs ion-gear-b"></button>
+              <button type="button" class="btn btn-default  btn-xs dropdown-toggle" data-toggle="dropdown" aria-expanded="true">
+                <span class="caret"></span>
+                <span class="sr-only">Toggle Dropdown</span>
+              </button>
+              <ul class="dropdown-menu" role="menu">
+                <li><a href="#">Action</a></li>
+                <li><a href="#">Another action</a></li>
+                <li><a href="#">Something else here</a></li>
+                <li class="divider"></li>
+                <li><a href="#">Separated link</a></li>
+              </ul>
+            </div>
+
+              <a class="btn btn-danger btn-xs pull-right">Delete</a>
+            </div>
+          </div>
+        </li>
+
+        <!-- /.timeline-label -->
+        <!-- timeline item -->
+        <li>
+          <i class="fa ion-checkmark-round bg-green"></i>
+          <div class="timeline-item">
+            <span class="time"><i class="fa fa-clock-o"></i> 12:05</span>
+            <h3 class="timeline-header"><a href="#">Support Team</a> sent you an email</h3>
+            <div class="timeline-body">
+              Etsy doostang zoodles disqus groupon greplin oooj voxy zoodles,
+              weebly ning heekya handango imeem plugg dopplr jibjab, movity
+              jajah plickers sifteo edmodo ifttt zimbra. Babblely odeo kaboodle
+              quora plaxo ideeli hulu weebly balihoo...
+            </div>
+            <div class='timeline-footer'>
+              Status:
+              <div class="btn btn-xs bg-green">Accepted</div>
+              Reviewers:
+              <a class="btn btn-primary btn-xs">Read more</a>
+              <a class="btn btn-danger btn-xs">Delete</a>
+
+              <div class="btn-group open  btn-xs pull-right">
+              <button type="button" class="btn btn-default btn-xs ion-gear-b"></button>
+              <button type="button" class="btn btn-default  btn-xs dropdown-toggle" data-toggle="dropdown" aria-expanded="true">
+                <span class="caret"></span>
+                <span class="sr-only">Toggle Dropdown</span>
+              </button>
+              <ul class="dropdown-menu" role="menu">
+                <li><a href="#">Action</a></li>
+                <li><a href="#">Another action</a></li>
+                <li><a href="#">Something else here</a></li>
+                <li class="divider"></li>
+                <li><a href="#">Separated link</a></li>
+              </ul>
+            </div>
+
+              <a class="btn btn-danger btn-xs pull-right">Delete</a>
+            </div>
+          </div>
+        </li>
+
+      </ul>
+
+  </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="box">
+        <div class="box-header with-border">
+          <h3 class="box-title">diff: com.bosch.rtc.server.forecast/src/com/bosch/rtc/server/forecast/impl/ForecastingService.java</h3>
+        </div><!-- /.box-header -->
+        <div class="box-body">
+          <div>
+            <div class="diff-div">
+              <div class="diff3">@@ -8,7 +8,7 @@</div>
+              <div class="diff"> import com.bosch.rtc.server.forecast.entities.ELinkType;</div>
+              <div class="diff"> import com.bosch.rtc.server.forecast.entities.WorkItem;</div>
+              <div class="diff"> import com.bosch.rtc.server.forecast.utils.WorkItemUtils;</div>
+              <div class="diff1">-</div>
+              <div class="diff2">+// Service comment</div>
+              <div class="diff"> public class ForecastingService {</div>
+              <div class="diff"> 	public List&lt;Calendar&gt; getForecastingVector(List&lt;WorkItem&gt; orderedWorkItems) {</div>
+              <div class="diff"> 		List&lt;Calendar&gt; returnVector = new ArrayList&lt;Calendar&gt;();</div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /.box -->
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="box">
+        <div class="box-header with-border">
+          <h3 class="box-title">Add Comment</h3>
+        </div><!-- /.box-header -->
+        <div class="box-body">
+          <form action="#" method="post">
+
+
+            <ul class="wysihtml5-toolbar" id="wysihtml5-toolbar"><li class="dropdown">
+  <a class="btn btn-default dropdown-toggle " data-toggle="dropdown">
+    <span class="glyphicon glyphicon-font"></span>
+    <span class="current-font">Normal text</span>
+    <b class="caret"></b>
+  </a>
+  <ul class="dropdown-menu">
+    <li><a data-wysihtml5-command="formatBlock" data-wysihtml5-command-value="div" tabindex="-1" href="javascript:;" unselectable="on">Normal text</a></li>
+    <li><a data-wysihtml5-command="formatBlock" data-wysihtml5-command-value="h1" tabindex="-1" href="javascript:;" unselectable="on">Heading 1</a></li>
+    <li><a data-wysihtml5-command="formatBlock" data-wysihtml5-command-value="h2" tabindex="-1" href="javascript:;" unselectable="on">Heading 2</a></li>
+    <li><a data-wysihtml5-command="formatBlock" data-wysihtml5-command-value="h3" tabindex="-1" href="javascript:;" unselectable="on">Heading 3</a></li>
+    <li><a data-wysihtml5-command="formatBlock" data-wysihtml5-command-value="h4" tabindex="-1" href="javascript:;" unselectable="on">Heading 4</a></li>
+    <li><a data-wysihtml5-command="formatBlock" data-wysihtml5-command-value="h5" tabindex="-1" href="javascript:;" unselectable="on">Heading 5</a></li>
+    <li><a data-wysihtml5-command="formatBlock" data-wysihtml5-command-value="h6" tabindex="-1" href="javascript:;" unselectable="on">Heading 6</a></li>
+  </ul>
+</li>
+<li>
+  <div class="btn-group">
+    <a class="btn  btn-default" data-wysihtml5-command="bold" title="CTRL+B" tabindex="-1" href="javascript:;" unselectable="on">Bold</a>
+    <a class="btn  btn-default" data-wysihtml5-command="italic" title="CTRL+I" tabindex="-1" href="javascript:;" unselectable="on">Italic</a>
+    <a class="btn  btn-default" data-wysihtml5-command="underline" title="CTRL+U" tabindex="-1" href="javascript:;" unselectable="on">Underline</a>
+  </div>
+</li>
+<li>
+  <div class="btn-group">
+    <a class="btn  btn-default" data-wysihtml5-command="insertUnorderedList" title="Unordered list" tabindex="-1" href="javascript:;" unselectable="on"><span class="glyphicon glyphicon-list"></span></a>
+    <a class="btn  btn-default" data-wysihtml5-command="insertOrderedList" title="Ordered list" tabindex="-1" href="javascript:;" unselectable="on"><span class="glyphicon glyphicon-th-list"></span></a>
+    <a class="btn  btn-default" data-wysihtml5-command="Outdent" title="Outdent" tabindex="-1" href="javascript:;" unselectable="on"><span class="glyphicon glyphicon-indent-right"></span></a>
+    <a class="btn  btn-default" data-wysihtml5-command="Indent" title="Indent" tabindex="-1" href="javascript:;" unselectable="on"><span class="glyphicon glyphicon-indent-left"></span></a>
+  </div>
+</li>
+<li>
+  <div class="bootstrap-wysihtml5-insert-link-modal modal fade">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <a class="close" data-dismiss="modal">×</a>
+          <h3>Insert link</h3>
+        </div>
+        <div class="modal-body">
+          <input value="http://" class="bootstrap-wysihtml5-insert-link-url form-control">
+          <div class="checkbox"><label> <input type="checkbox" class="bootstrap-wysihtml5-insert-link-target" checked="">Open link in new window</label></div>
+        </div>
+        <div class="modal-footer">
+          <a class="btn btn-default" data-dismiss="modal">Cancel</a>
+          <a href="#" class="btn btn-primary" data-dismiss="modal">Insert link</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <a class="btn  btn-default" data-wysihtml5-command="createLink" title="Insert link" tabindex="-1" href="javascript:;" unselectable="on">
+    <span class="glyphicon glyphicon-share"></span>
+  </a>
+</li>
+<li>
+  <div class="bootstrap-wysihtml5-insert-image-modal modal fade">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <a class="close" data-dismiss="modal">×</a>
+          <h3>Insert image</h3>
+        </div>
+        <div class="modal-body">
+          <input value="http://" class="bootstrap-wysihtml5-insert-image-url form-control">
+        </div>
+        <div class="modal-footer">
+          <a class="btn btn-default" data-dismiss="modal">Cancel</a>
+          <a class="btn btn-primary" data-dismiss="modal">Insert image</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <a class="btn  btn-default" data-wysihtml5-command="insertImage" title="Insert image" tabindex="-1" href="javascript:;" unselectable="on">
+    <span class="glyphicon glyphicon-picture"></span>
+  </a>
+</li>
+</ul>
+
+
+            <div>
+              <textarea id="wysihtml5-textarea" class="textarea" placeholder="Message" style="width: 100%; height: 125px; font-size: 14px; line-height: 18px; border: 1px solid #dddddd; padding: 10px;"></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="box-footer clearfix">
+          <button class="pull-right btn btn-default" id="sendEmail">Send <i class="fa fa-arrow-circle-right"></i></button>
+        </div>
+      </div><!-- /.box -->
+    </div>
+  </div>
+</section>
+
+<script type="text/javascript">
+
+   function loadCSS(filename){
+
+      var file = document.createElement("link")
+      file.setAttribute("rel", "stylesheet")
+      file.setAttribute("type", "text/css")
+      file.setAttribute("href", filename)
+
+      if (typeof file !== "undefined")
+         document.getElementsByTagName("head")[0].appendChild(file)
+   }
+
+
+  //just call a function to load a new CSS:
+  loadCSS("../../dist/css/AdminLTE.css")
+  loadCSS("../../plugins/bootstrap-wysihtml5/bootstrap3-wysihtml5.min.css")
+
+</script>
+
+<!-- Bootstrap WYSIHTML5 -->
+<script src="../../plugins/bootstrap-wysihtml5/advanced.js" type="text/javascript"></script>
+
+<!-- Bootstrap WYSIHTML5 -->
+<script src="../../plugins/bootstrap-wysihtml5/bootstrap3-wysihtml5.all.min.js" type="text/javascript"></script>
+
+<script>
+var editor = new wysihtml5.Editor("wysihtml5-textarea", { // id of textarea element
+  toolbar:      "wysihtml5-toolbar",
+  parserRules:   wysihtml5ParserRules
+});
+</script>

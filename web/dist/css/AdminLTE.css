@@ -50,6 +50,83 @@ body {
 .layout-boxed {
   background: url('../img/boxed-bg.jpg') repeat fixed;
 }
+
+/*
+* Jazz.net diff viewer
+*/
+.file-view .diff-section-div {
+	border-spacing: 0;
+	border-collapse: collapse;
+	margin: 1em;
+}
+
+.diff-div {
+	border-width: 1px 1px 1px 1px;
+	border-style: solid;
+	border-color: #e5e5cc;
+	padding-left: 6px;
+	padding-right: 6px;
+	padding-top: 1px;
+	padding-bottom: 1px;
+	margin-top: 2px;
+}
+
+.diff {
+    font-family: monospace;
+	font-size: 8pt;
+
+	white-space: -moz-pre-wrap !important; /* Mozilla */
+	word-wrap: break-word; /* IE */
+	white-space: normal;
+
+}
+
+.diff1 {
+    font-family: monospace;
+	font-size: 8pt;
+
+	white-space: -moz-pre-wrap !important; /* Mozilla */
+	word-wrap: break-word; /* IE */
+	white-space: normal;
+
+	background: #FFDDDD;
+}
+
+.diff2 {
+    font-family: monospace;
+	font-size: 8pt;
+
+	white-space: -moz-pre-wrap !important; /* Mozilla */
+	word-wrap: break-word; /* IE */
+	white-space: normal;
+
+	background-color: #DDFFDD;
+}
+
+.diff3 {
+    font-family: monospace;
+	font-size: 10pt;
+
+	white-space: -moz-pre-wrap !important; /* Mozilla */
+	word-wrap: break-word; /* IE */
+	white-space: normal;
+
+	border-top: 1px #E5EFF5 solid;
+	background: #F7F7F7;
+  	padding-top: 1px;
+}
+
+.diff4 {
+    font-family: monospace;
+	font-size: 8pt;
+
+	white-space: -moz-pre-wrap !important; /* Mozilla */
+	word-wrap: break-word; /* IE */
+	white-space: normal;
+
+	background: #F7F7F7;
+}
+
 /*
  * Content Wrapper - contins main content
  * ```.right-side has been deprecated as of v2.0.0 in favor of .content-wrapper  ```

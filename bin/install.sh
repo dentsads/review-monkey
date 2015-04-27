@@ -6,11 +6,7 @@ mkdir ../.nodejs
 cd ../.nodejs
 
 # Download latest nodejs distribution and unzip it in place
-curl http://nodejs.org/dist/node-latest.tar.gz | tar xz --strip-components=1
+curl http://nodejs.org/dist/v0.12.2/node-v0.12.2-linux-x64.tar.gz | tar xz --strip-components=1
 
-# configure and make
-./configure
-make install
+export PATH=$PATH:bin
 
-# install npm in $TMP
-curl https://www.npmjs.org/install.sh | sh

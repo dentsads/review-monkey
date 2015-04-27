@@ -14,7 +14,7 @@ var reviewsApp = angular.module('reviewsApp', ['ngRoute',
         }).
         when('/reviews/:review_id', {
           templateUrl: '../pages/reviews/partials/review.html',
-          controller: 'ReviewListCtrl'
+          controller: 'ReviewDetailCtrl'
         }).
         otherwise({
           redirectTo: '/'

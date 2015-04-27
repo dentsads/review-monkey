@@ -11,7 +11,9 @@ reviewsApp.controller('ReviewListCtrl', function ($scope, $http) {
 
 reviewsApp.controller('ReviewDetailCtrl', function ($scope, $http, $routeParams) {
   $http.get(apiBasePath + "/reviews/" + $routeParams.review_id).success(function(data) {
-    $scope.review = data;
+    $scope.reviewDetail = data;
   });
+
+  $scope.id = $routeParams.review_id;
 
 });
