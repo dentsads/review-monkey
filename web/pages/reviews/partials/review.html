@@ -195,6 +195,8 @@
     </div>
   </div>
 
+  <div id="diff-boxes"></div>
+
   <div class="row">
     <div class="col-md-12">
       <div class="box">
@@ -426,29 +428,63 @@ var editor = new wysihtml5.Editor("wysihtml5-textarea", { // id of textarea elem
   parserRules:   wysihtml5ParserRules
 });
 
-$('.inline-comment-form').hide();
-
-function insertInlineCommentFormAfterLine(line) {
+function insertInlineCommentFormAfterLine(diffId, line) {
   return function () {
     $('.inline-comment-form').hide();
-    $( '.inline-comment-form-textarea' ).val('');
-    $( '.inline-comment-form' ).insertAfter('#diff-' + line);
+    $('.inline-comment-form-textarea').val('');
+    $('.inline-comment-form').insertAfter('#diff'+diffId+'-' + line);
     $('.inline-comment-form').show();
   };
 }
 
-for (var i = 1; i < 8; i++) {
-  $('#diff-' + i).click(insertInlineCommentFormAfterLine(i));
+function getDiffBoxString(diffId, diffArray) {
+  var diffLines = "";
+
+  for (var i = 1; i < diffArray.length -3; i++) {
+    var mode = "";
+    if (diffArray[i+2].startsWith("-"))
+      mode = "1";
+    if (diffArray[i+2].startsWith("+"))
+      mode = "2";
+
+    diffLines += "<div id='diff"+diffId+"-"+i+"' class='diff"+ mode +"'>"+ diffArray[i + 2] + "</div>";
+  }
+
+  return "<div class='row'> \
+          <div class='col-md-12'> \
+          <div class='box'> \
+          <div class='box-header with-border'> \
+          <h3 class='box-title'>"+ diffArray[0] +"</h3> \
+          </div> \
+          <div class='box-body'> \
+          <div class='diff-div'> \
+          <div> \
+          "+diffLines+" \
+          </div> \
+          </div> \
+          </div> \
+          </div> \
+          </div> \
+          </div>";
+
 }
 
+function createDiffBoxWithInlineComments(diffId, uDiffString) {
+  var diffArray = uDiffString.split(/\u21B5/g)||[];
+
+  $("#diff-boxes").append(getDiffBoxString(diffId, diffArray));
+
+  for (var i = 1; i < diffArray.length -3; i++) {
+    $('#diff'+diffId+'-' + i).click(insertInlineCommentFormAfterLine(diffId, i));
+  }
+}
+
+$('.inline-comment-form').hide();
 $('#inline-comment-form-cancel').click(function() { $('.inline-comment-form').hide(); });
 
-function generateDiffBox(uDiffString) {
-  var diffArray = uDiffString.split(/\r\n|\r|\n/g)||[];
-  alert(diffArray.length);
-}
-
 var diff = "diff -u -N com.bosch.rtc.server.forecast/src/com/bosch/rtc/server/forecast/impl/ForecastingService.java /dev/null↵--- com.bosch.rtc.server.forecast/src/com/bosch/rtc/server/forecast/impl/ForecastingService.java	2014-09-28 12:28:39.000000000 +0200↵+++ /dev/null	1970-01-01 01:00:00.000000000 +0100↵@@ -8,7 +8,7 @@↵ import com.bosch.rtc.server.forecast.entities.ELinkType;↵ import com.bosch.rtc.server.forecast.entities.WorkItem;↵ import com.bosch.rtc.server.forecast.utils.WorkItemUtils;↵-↵+// Service comment↵ public class ForecastingService {↵ 	public List<Calendar> getForecastingVector(List<WorkItem> orderedWorkItems) {↵ 		List<Calendar> returnVector = new ArrayList<Calendar>();↵";
-generateDiffBox(diff);
+
+createDiffBoxWithInlineComments("1", diff);
+createDiffBoxWithInlineComments("2", diff);
 
 </script>
