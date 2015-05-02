@@ -2,7 +2,7 @@
   "id": "/Review",
   "type": "object",
   "properties": {
-    "author": {"type": "string"},
+    "author": {"$ref": "#/definitions/idReferences"},
     "reviewers": {
       "type": "array",
       "minItems": 0,
@@ -52,7 +52,10 @@
      "idReferences": {
         "type": "object",
         "properties": {
-          "refId": { "type": "string" }
+          "refId": {
+            "format": "uri",
+            "type": "string"
+          }
         },
         "additionalProperties": false,
         "required": ["refId"]
@@ -61,8 +64,7 @@
          "type": "object",
          "properties": {
            "udiff": {
-            "type": "string",
-            "pattern": "^/dev/[^/]+(/[^/]+)*$"
+            "type": "string"
           },
            "comments": {
              "type": "array",
@@ -81,7 +83,10 @@
               "type": "integer",
               "minimum": 1
             },
-            "refId": { "type": "string" }
+            "refId": {
+              "format": "uri",
+              "type": "string"
+            }
           },
           "additionalProperties": false,
           "required": ["refId", "line"]

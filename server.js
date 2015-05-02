@@ -5,7 +5,9 @@ var bodyParser = require('body-parser');
 var Validator = require('jsonschema').Validator;
 var fs = require("fs");
 
-var REVIEW_SCHEMA = JSON.parse(fs.readFileSync("./lib/model/reviewSchema.json", "utf8"));
+var REVIEW_SCHEMA  = JSON.parse(fs.readFileSync("./lib/model/reviewSchema.json", "utf8"));
+var COMMENT_SCHEMA = JSON.parse(fs.readFileSync("./lib/model/commentSchema.json", "utf8"));
+var USER_SCHEMA    = JSON.parse(fs.readFileSync("./lib/model/userSchema.json", "utf8"));
 
 var validator = new Validator();
 var app = express();

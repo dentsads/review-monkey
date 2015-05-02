@@ -1,0 +1,15 @@
+{
+  "id": "/User",
+  "type": "object",
+  "properties": {
+    "id": {"type": "string"},
+    "firstname": {"type": "string"},
+    "lastname": {"type": "string"},
+    "email": {
+      "format": "email",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "required": ["id", "firstname", "lastname", "email"]
+}

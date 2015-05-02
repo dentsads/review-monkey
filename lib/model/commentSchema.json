@@ -1,0 +1,35 @@
+{
+  "id": "/Comment",
+  "type": "object",
+  "properties": {
+    "author": {"$ref": "#/definitions/idReferences"},
+    "text": {"type": "string"},
+    "review": {"$ref": "#/definitions/idReferences"},
+    "parentComment": {"$ref": "#/definitions/idReferences"},
+    "replies": {
+      "type": "array",
+      "minItems": 0,
+      "items": { "$ref": "#/definitions/idReferences" },
+      "uniqueItems": true
+    },
+    "nature": {
+      "enum": [ "inline", "global"]
+    }
+  },
+  "additionalProperties": false,
+  "required": ["author", "text", "nature", "review"],
+
+  "definitions": {
+     "idReferences": {
+        "type": "object",
+        "properties": {
+          "refId": {
+            "format": "uri",
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": ["refId"]
+      }
+  }
+}
