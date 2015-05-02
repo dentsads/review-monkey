@@ -1,11 +1,13 @@
 // Persistent datastore with automatic loading
 var Datastore = require('nedb');
-// Express web framework
 var express = require('express');
 var bodyParser = require('body-parser');
 var Validator = require('jsonschema').Validator;
-var validator = new Validator();
+var fs = require("fs");
 
+var REVIEW_SCHEMA = JSON.parse(fs.readFileSync("./lib/model/reviewSchema.json", "utf8"));
+
+var validator = new Validator();
 var app = express();
 
 // configure app to use bodyParser()
@@ -21,63 +23,19 @@ var dbReview = new Datastore({ filename: './.datastore/reviews.db', autoload: tr
 var dbComments = new Datastore({ filename: './.datastore/comments.db', autoload: true });
 var dbUsers = new Datastore({ filename: './.datastore/users.db', autoload: true });
 
-var ReviewValidator = (function () {
+var ErrorHandler = (function () {
     var constr = function () {
         // the constructor
     };
 
-    constr.isValidReviewRequest = function (req, res) {
-      if (!req.is('application/json')) {
-        res.status(406).send(_createError(1,"The content-type header must be set to application/json")).end();
-        return false;
-      }
-
-      var validationResult = _validateReviewObject(req.body);
-
-      if (validationResult.errors.length !== 0) {
-        var errorArray = [];
-        for (var i = 0 ; i < validationResult.errors.length; i++) {
-          var error = validationResult.errors[i];
-          errorArray.push({'message': error.property + " " + error.message, 'code': 2});
-        }
-        res.status(406).send(_createErrors(errorArray)).end();
-        return false;
-      }
-
-      return true;
-    };
-
-    this._validateReviewObject = function (review) {
-      var reviewSchema = {
-        "id": "/Review",
-        "type": "object",
-        "properties": {
-          "udiff": {"type": "string"},
-          "message": {"type": "string"},
-          "creationDate": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "modificationDate": {
-            "format": "date-time",
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "required": ["udiff", "message", "creationDate", "modificationDate"]
-      };
-
-      return validator.validate(review, reviewSchema);
-    };
-
-    this._createError = function (code, message) {
+    constr.createError = function (code, message) {
       return {'errors': [{
         'message': message,
         'code': code
       }]};
     };
 
-    this._createErrors = function (errorArray) {
+    constr.createErrors = function (errorArray) {
       if (!errorArray) throw new Error("errorArray must not be empty");
 
       var errors = [];
@@ -93,6 +51,39 @@ var ReviewValidator = (function () {
       }
 
       return {'errors': errors};
+    };
+
+    return constr;
+})();
+
+var ReviewValidator = (function () {
+    var constr = function () {
+        // the constructor
+    };
+
+    constr.isValidReviewRequest = function (req, res) {
+      // Check if content-type is application/json*
+      if (!req.is('application/json')) {
+        res.status(406).send(ErrorHandler.createError(1,"The content-type header must be set to application/json")).end();
+        return false;
+      }
+
+      var validationResult = _validateReviewObject(req.body);
+      if (validationResult.errors.length !== 0) {
+        var errorArray = [];
+        for (var i = 0 ; i < validationResult.errors.length; i++) {
+          var error = validationResult.errors[i];
+          errorArray.push({'message': error.property + " " + error.message, 'code': 2});
+        }
+        res.status(406).send(ErrorHandler.createErrors(errorArray)).end();
+        return false;
+      }
+
+      return true;
+    };
+
+    this._validateReviewObject = function (review) {
+      return validator.validate(review, REVIEW_SCHEMA);
     };
 
     return constr;

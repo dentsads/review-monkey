@@ -1,0 +1,18 @@
+{
+  "id": "/Review",
+  "type": "object",
+  "properties": {
+    "udiff": {"type": "string"},
+    "message": {"type": "string"},
+    "creationDate": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "modificationDate": {
+      "format": "date-time",
+      "type": "string"
+    }
+  },
+  "additionalProperties": true,
+  "required": ["udiff", "message", "creationDate", "modificationDate"]
+}

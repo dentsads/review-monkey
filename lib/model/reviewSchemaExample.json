@@ -1,0 +1,52 @@
+{
+  id: 1,
+  author: "jazzadmin",
+  reviewers: ["a","b","c"],
+  subscribers: ["a","b","c"],
+  repository: "https://localhost:9443/ccm",
+  source: "Repository Workspace",
+  globalComments: [
+    {
+      refId: "2",
+    },
+    {
+      refId: "4",
+    }
+  ],
+  changes: [
+    {
+      udiff:"diff A",
+      comments: [
+        {
+          line: "2",
+          refId: "3"
+        },
+        {
+          line: "2",
+          refId: "6"
+        },
+        {
+          line: "3",
+          refId: "4"
+        }
+      ]
+    },
+    {
+      udiff:"diff B",
+      comments: [
+        {
+          line: "2",
+          refId: "3"
+        },
+        {
+          line: "2",
+          refId: "6"
+        },
+        {
+          line: "3",
+          refId: "4"
+        }
+      ]
+    }
+  ]
+}
