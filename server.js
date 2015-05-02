@@ -4,6 +4,7 @@ var Datastore = require('nedb');
 var express = require('express');
 var bodyParser = require('body-parser');
 var Validator = require('jsonschema').Validator;
+var validator = new Validator();
 
 var app = express();
 
@@ -30,26 +31,68 @@ var ReviewValidator = (function () {
         res.status(406).send(_createError(1,"The content-type header must be set to application/json")).end();
         return false;
       }
-      if (!_isValidReviewObject(req.body)) {
-        res.status(406).send(_createError(2,"The review message structure in the request body is invalid!")).end();
+
+      var validationResult = _validateReviewObject(req.body);
+
+      if (validationResult.errors.length !== 0) {
+        var errorArray = [];
+        for (var i = 0 ; i < validationResult.errors.length; i++) {
+          var error = validationResult.errors[i];
+          errorArray.push({'message': error.property + " " + error.message, 'code': 2});
+        }
+        res.status(406).send(_createErrors(errorArray)).end();
         return false;
       }
-    };
-
-    this._isValidReviewObject = function (review) {
-      if (!review) return false;
-      if (!review.message) return false;
-      if (!review.creationDate) return false;
-      if (!review.modificationDate) return false;
 
       return true;
     };
 
+    this._validateReviewObject = function (review) {
+      var reviewSchema = {
+        "id": "/Review",
+        "type": "object",
+        "properties": {
+          "udiff": {"type": "string"},
+          "message": {"type": "string"},
+          "creationDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "modificationDate": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": ["udiff", "message", "creationDate", "modificationDate"]
+      };
+
+      return validator.validate(review, reviewSchema);
+    };
+
     this._createError = function (code, message) {
-      return {error: {
+      return {'errors': [{
         'message': message,
         'code': code
-      }};
+      }]};
+    };
+
+    this._createErrors = function (errorArray) {
+      if (!errorArray) throw new Error("errorArray must not be empty");
+
+      var errors = [];
+      for(var i = 0 ; i < errorArray.length; i++){
+        var error = errorArray[i];
+        if (!error.message) throw new Error("error.message must not be empty");
+        if (!error.code) throw new Error("error.code must not be empty");
+
+        errors.push({
+          'message': error.message,
+          'code': error.code
+        });
+      }
+
+      return {'errors': errors};
     };
 
     return constr;
