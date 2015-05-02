@@ -1,16 +1,32 @@
 {
   id: 1,
-  author: "jazzadmin",
-  reviewers: ["a","b","c"],
-  subscribers: ["a","b","c"],
-  repository: "https://localhost:9443/ccm",
-  source: "Repository Workspace",
-  globalComments: [
+  author: "author1",
+  reviewers: [
     {
-      refId: "2",
+      refId: "2"
     },
     {
-      refId: "4",
+      refId: "4"
+    }
+  ],
+  subscribers: [
+    {
+      refId: "2"
+    },
+    {
+      refId: "4"
+    }
+  ],
+  repository: "https://localhost:9443/foo/bar",
+  creationDate: "2015-04-19T20:02:56.303Z",
+  modificationDate: "2015-04-19T20:02:56.303Z",
+  description: "review description",
+  globalComments: [
+    {
+      refId: "2"
+    },
+    {
+      refId: "4"
     }
   ],
   changes: [
@@ -18,15 +34,15 @@
       udiff:"diff A",
       comments: [
         {
-          line: "2",
+          line: 2,
           refId: "3"
         },
         {
-          line: "2",
+          line: 2,
           refId: "6"
         },
         {
-          line: "3",
+          line: 3,
           refId: "4"
         }
       ]
@@ -35,15 +51,15 @@
       udiff:"diff B",
       comments: [
         {
-          line: "2",
+          line: 2,
           refId: "3"
         },
         {
-          line: "2",
+          line: 2,
           refId: "6"
         },
         {
-          line: "3",
+          line: 3,
           refId: "4"
         }
       ]

@@ -2,8 +2,37 @@
   "id": "/Review",
   "type": "object",
   "properties": {
-    "udiff": {"type": "string"},
-    "message": {"type": "string"},
+    "author": {"type": "string"},
+    "reviewers": {
+      "type": "array",
+      "minItems": 0,
+      "items": { "$ref": "#/definitions/idReferences" },
+      "uniqueItems": true
+    },
+    "globalComments": {
+      "type": "array",
+      "minItems": 0,
+      "items": { "$ref": "#/definitions/idReferences" },
+      "uniqueItems": true
+    },
+    "subscribers": {
+      "type": "array",
+      "minItems": 0,
+      "items": { "$ref": "#/definitions/idReferences" },
+      "uniqueItems": true
+    },
+    "changes": {
+      "type": "array",
+      "minItems": 0,
+      "items": { "$ref": "#/definitions/changeReferences" },
+      "uniqueItems": true
+    },
+    "description": {"type": "string"},
+    "source": {"type": "string"},
+    "repository": {
+      "format": "uri",
+      "type": "string"
+    },
     "creationDate": {
       "format": "date-time",
       "type": "string"
@@ -11,8 +40,51 @@
     "modificationDate": {
       "format": "date-time",
       "type": "string"
+    },
+    "priority": {
+      "enum": [ "low", "medium", "high" ]
     }
   },
-  "additionalProperties": true,
-  "required": ["udiff", "message", "creationDate", "modificationDate"]
+  "additionalProperties": false,
+  "required": ["author", "description", "changes"],
+
+  "definitions": {
+     "idReferences": {
+        "type": "object",
+        "properties": {
+          "refId": { "type": "string" }
+        },
+        "additionalProperties": false,
+        "required": ["refId"]
+      },
+      "changeReferences": {
+         "type": "object",
+         "properties": {
+           "udiff": {
+            "type": "string",
+            "pattern": "^/dev/[^/]+(/[^/]+)*$"
+          },
+           "comments": {
+             "type": "array",
+             "minItems": 0,
+             "items": { "$ref": "#/definitions/commentReferences" },
+             "uniqueItems": true
+           }
+         },
+         "additionalProperties": false,
+         "required": ["udiff"]
+       },
+       "commentReferences": {
+          "type": "object",
+          "properties": {
+            "line": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "refId": { "type": "string" }
+          },
+          "additionalProperties": false,
+          "required": ["refId", "line"]
+        }
+  }
 }

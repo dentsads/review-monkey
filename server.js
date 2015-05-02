@@ -68,6 +68,7 @@ var ReviewValidator = (function () {
         return false;
       }
 
+      // Validate request json message against schema in reviewSchema.json
       var validationResult = _validateReviewObject(req.body);
       if (validationResult.errors.length !== 0) {
         var errorArray = [];
@@ -79,6 +80,7 @@ var ReviewValidator = (function () {
         return false;
       }
 
+      // If this point is reached, then the request seems to be valid
       return true;
     };
 
@@ -168,7 +170,7 @@ var CommentService = (function () {
 })();
 
 router.get('/', function(req, res) {
-   res.json({ message: 'hooray! welcome to our api!' });
+   res.json({ message: 'Welcome to the Review Monkey API!' });
 });
 
 router.route('/reviews')
@@ -181,7 +183,7 @@ router.route('/reviews/:review_id')
     .delete(ReviewService.deleteReview());
 
 // REGISTER OUR ROUTES -------------------------------
-// all of our routes will be prefixed with /api
+// all of our routes will be prefixed with /api/<version>/
 app.use('/api/v1', router);
 
 //app.set('views', __dirname + '/web3');
