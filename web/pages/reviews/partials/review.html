@@ -3,7 +3,7 @@
     <div class="col-md-12">
     <div class="box">
       <div class="box-header with-border">
-        <h3 class="box-title">Review {{reviewDetail[0]._id}}</h3>
+        <h3 class="box-title">Review {{reviewDetail._id}}</h3>
         <h3 class="box-title pull-right"><i class="fa fa-check-circle text-green"></i> Accepted</h3>
       </div><!-- /.box-header -->
       <div class="box-body">
@@ -11,23 +11,22 @@
           <div class="col-md-8">
             <div class="box-body">
                   <dl class="dl-horizontal">
-                    <dt>Modified on</dt>
-                    <dd>Apr 27, 2015 8:00 PM (2 minutes ago)</dd>
                     <dt>Author</dt>
-                    <dd>JazzAdmin</dd>
+                    <dd>{{reviewDetail.author.refId}}</dd>
                     <dt>Reviewers</dt>
-                    <dd><i class="fa fa-check-circle text-green"></i> JazzAdmin</dd>
-                    <dd><i class="fa fa-circle-o"></i> JazzAdmin2</dd>
-                    <dd><i class="fa fa-times-circle text-red"></i> JazzAdmin3</dd>
-                    <dt>Subscribers</dt>
-                    <dd>ddt2si</dd>
-                    <dd>mam3si</dd>
+                    <dd ng-repeat="reviewer in reviewDetail.reviewers"><i class="fa {{getReviewStatusClass(reviewer.reviewStatus)}}"></i> {{reviewer.refId}}</dd>
+                    <dt>Modified on</dt>
+                    <dd>{{reviewDetail.modificationDate}}</dd>
+                    <dt>Created on</dt>
+                    <dd>{{reviewDetail.creationDate}}</dd>
                     <dt>Repository</dt>
-                    <dd>https://localhost:9443/ccm</dd>
-                    <dt>Source</dt>
-                    <dd>Jazz Repository Workspace</dd>
-                    <dt>Comment</dt>
-                    <dd>Etiam porta sem malesuada magna mollis euismod.</dd>
+                    <dd>{{reviewDetail.repository}}</dd>
+                    <dt>Priority</dt>
+                    <dd>{{reviewDetail.priority}}</dd>
+                    <dt>Description</dt>
+                    <dd>{{reviewDetail.description}}</dd>
+                    <dt>Subscribers</dt>
+                    <dd ng-repeat="subscriber in reviewDetail.subscribers"> {{subscriber.refId}}</dd>
                     <dt>Changes</dt>
                     <dd style="font-family: 'Courier New', Courier, monospace;font-size:small">com.bosch.rtc.server.forecast/src/com/bosch/rtc/server/forecast/impl/ForecastingService.java</dd>
                     <dd style="font-family: 'Courier New', Courier, monospace;font-size:small">com.bosch.rtc.server.forecast/src/com/bosch/rtc/server/forecast/Main.java</dd>
@@ -397,63 +396,13 @@ var editor = new wysihtml5.Editor("wysihtml5-textarea", { // id of textarea elem
   parserRules:   wysihtml5ParserRules
 });
 
-function insertInlineCommentFormAfterLine(diffId, line) {
-  return function () {
-    $('.inline-comment-form').hide();
-    $('.inline-comment-form-textarea').val('');
-    $('.inline-comment-form').insertAfter('#diff'+diffId+'-' + line);
-    $('.inline-comment-form').show();
-  };
-}
-
-function getDiffBoxString(diffId, diffArray) {
-  var diffLines = "";
-
-  for (var i = 1; i < diffArray.length -3; i++) {
-    var mode = "";
-    if (diffArray[i+2].startsWith("-"))
-      mode = "1";
-    if (diffArray[i+2].startsWith("+"))
-      mode = "2";
-
-    diffLines += "<div id='diff"+diffId+"-"+i+"' class='diff"+ mode +"'>"+ diffArray[i + 2] + "</div>";
-  }
-
-  return "<div class='row'> \
-          <div class='col-md-12'> \
-          <div class='box'> \
-          <div class='box-header with-border'> \
-          <h3 class='box-title'>"+ diffArray[0] +"</h3> \
-          </div> \
-          <div class='box-body'> \
-          <div class='diff-div'> \
-          <div> \
-          "+diffLines+" \
-          </div> \
-          </div> \
-          </div> \
-          </div> \
-          </div> \
-          </div>";
-
-}
-
-function createDiffBoxWithInlineComments(diffId, uDiffString) {
-  var diffArray = uDiffString.split(/\u21B5/g)||[];
-
-  $("#diff-boxes").append(getDiffBoxString(diffId, diffArray));
-
-  for (var i = 1; i < diffArray.length -3; i++) {
-    $('#diff'+diffId+'-' + i).click(insertInlineCommentFormAfterLine(diffId, i));
-  }
-}
-
 $('.inline-comment-form').hide();
 $('#inline-comment-form-cancel').click(function() { $('.inline-comment-form').hide(); });
 
-var diff = "diff -u -N com.bosch.rtc.server.forecast/src/com/bosch/rtc/server/forecast/impl/ForecastingService.java /dev/null↵--- com.bosch.rtc.server.forecast/src/com/bosch/rtc/server/forecast/impl/ForecastingService.java	2014-09-28 12:28:39.000000000 +0200↵+++ /dev/null	1970-01-01 01:00:00.000000000 +0100↵@@ -8,7 +8,7 @@↵ import com.bosch.rtc.server.forecast.entities.ELinkType;↵ import com.bosch.rtc.server.forecast.entities.WorkItem;↵ import com.bosch.rtc.server.forecast.utils.WorkItemUtils;↵-↵+// Service comment↵ public class ForecastingService {↵ 	public List<Calendar> getForecastingVector(List<WorkItem> orderedWorkItems) {↵ 		List<Calendar> returnVector = new ArrayList<Calendar>();↵";
+var b64Data = "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAlJJREFUeNqkk01rE0EYx/+T3aZJTAtug2hrDNKVGHsSEV/S1oJ68NBLxGM/giC5CD31E+QjePEeC0W8VJGK1UODHlpiJSVSS5LavGn2ZXazu+PMxpqEHjvwX+aZeX5/np15hjDGcJohiw95GQMkwiUCMgmCDJ/d5br0L2+faxMMeTBWgcsjl4Et1XsGA2MxJAezyamkmojFlehoNCTq06l2/Ud9f2638v2x1bVyfGltqIJjeHx0bGVhZj4lQw47tgPN1o73ItPK5UhcuTixsfNhpWP6675JwN9mmBwNBLNzV9MpS7fCmqaBUjqkWq0Go62Hb6u3UkEykhVM38BlmSvnp1Wq0bBhGDBNc0iNRgOb86+xdOEJHLMbTkzEVcH0DRyWjkVjSqfTQbvdhmVZ6GgdHP46RLlcxqvkCxwcHODRyAK2d7bhmZ4imP4ZOCweQCCk6zoKD9ehrt6EYRtg/KQL99b9FEmScO1N2r8patOQYAYrgOu6eK4+xd7eHr7cfwcm9WBZln3NvJ0Fojw3zNNlx2f6Bl32s64f0WfFZT9stVoo3BmANzh8VtxFTzaxqGAGK/hYO6o2JUXC7LfF/6APf+LwuT4sRP8YTcEMGuTb+41SAMQkUwQ3th/04C0OTw3DnueaVs0oCaZv4LGKqzu5xudqkTmeSRIEM185nOj987E82zG1rWbRM7ycYIY70WNrTtXC79VqNpg6owaTEUWS5JDfJm2H2rtG0y7qJa/LchiXeBeSE63sm3h1p0DftzJcJx+TRPIYkyqDCDntc/4rwACrfzPlLXE9VAAAAABJRU5ErkJggg==";
 
-createDiffBoxWithInlineComments("1", diff);
-createDiffBoxWithInlineComments("2", diff);
+var image = document.createElement('img');
+    image.src = 'data:image/png;base64,'+ b64Data;
+    $("#picture").append(image);
 
 </script>

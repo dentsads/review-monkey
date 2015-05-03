@@ -3,7 +3,7 @@
   "type": "object",
   "properties": {
     "author": {"$ref": "#/definitions/idReferences"},
-    "text": {"type": "string"},
+    "text": {"type": "string","minLength":1},
     "review": {"$ref": "#/definitions/idReferences"},
     "parentComment": {"$ref": "#/definitions/idReferences"},
     "replies": {
@@ -24,7 +24,6 @@
         "type": "object",
         "properties": {
           "refId": {
-            "format": "uri",
             "type": "string"
           }
         },

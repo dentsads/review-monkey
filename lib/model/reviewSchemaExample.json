@@ -1,66 +1,66 @@
 {
-  id: 1,
-  author: "author1",
-  reviewers: [
+  "author": {"refId": "http://localhost:3000/api/v1/users/2"},
+  "reviewers": [
     {
-      refId: "2"
+      "reviewStatus": "open",
+      "refId": "http://localhost:3000/api/v1/users/2"
     },
     {
-      refId: "4"
+      "reviewStatus": "rejected",
+      "refId": "http://localhost:3000/api/v1/users/4"
     }
   ],
-  subscribers: [
+  "subscribers": [
     {
-      refId: "2"
+      "refId": "http://localhost:3000/api/v1/users/2"
     },
     {
-      refId: "4"
+      "refId": "http://localhost:3000/api/v1/users/4"
     }
   ],
-  repository: "https://localhost:9443/foo/bar",
-  creationDate: "2015-04-19T20:02:56.303Z",
-  modificationDate: "2015-04-19T20:02:56.303Z",
-  description: "review description",
-  globalComments: [
+  "repository": "https://localhost:9443/foo/bar",
+  "description": "review description",
+  "priority": "low",
+  "globalComments": [
     {
-      refId: "2"
+      "refId": "http://localhost:3000/api/v1/comments/2"
     },
     {
-      refId: "4"
+      "refId": "http://localhost:3000/api/v1/comments/4"
     }
   ],
-  changes: [
+  "changes": [
     {
-      udiff:"diff A",
-      comments: [
+      "udiff":"ZGlmZiAtdSAtTiBjb20uYm9zY2gucnRjLnNlcnZlci5mb3JlY2FzdC9zcmMvY29tL2Jvc2NoL3J0Yy9zZXJ2ZXIvZm9yZWNhc3QvaW1wbC9Gb3JlY2FzdGluZ1NlcnZpY2UuamF2YSAvZGV2L251bGzihrUtLS0gY29tLmJvc2NoLnJ0Yy5zZXJ2ZXIuZm9yZWNhc3Qvc3JjL2NvbS9ib3NjaC9ydGMvc2VydmVyL2ZvcmVjYXN0L2ltcGwvRm9yZWNhc3RpbmdTZXJ2aWNlLmphdmEJMjAxNC0wOS0yOCAxMjoyODozOS4wMDAwMDAwMDAgKzAyMDDihrUrKysgL2Rldi9udWxsCTE5NzAtMDEtMDEgMDE6MDA6MDAuMDAwMDAwMDAwICswMTAw4oa1QEAgLTgsNyArOCw3IEBA4oa1IGltcG9ydCBjb20uYm9zY2gucnRjLnNlcnZlci5mb3JlY2FzdC5lbnRpdGllcy5FTGlua1R5cGU74oa1IGltcG9ydCBjb20uYm9zY2gucnRjLnNlcnZlci5mb3JlY2FzdC5lbnRpdGllcy5Xb3JrSXRlbTvihrUgaW1wb3J0IGNvbS5ib3NjaC5ydGMuc2VydmVyLmZvcmVjYXN0LnV0aWxzLldvcmtJdGVtVXRpbHM74oa1LeKGtSsvLyBTZXJ2aWNlIGNvbW1lbnTihrUgcHVibGljIGNsYXNzIEZvcmVjYXN0aW5nU2VydmljZSB74oa1IAlwdWJsaWMgTGlzdDxDYWxlbmRhcj4gZ2V0Rm9yZWNhc3RpbmdWZWN0b3IoTGlzdDxXb3JrSXRlbT4gb3JkZXJlZFdvcmtJdGVtcykge",
+      "comments": [
         {
-          line: 2,
-          refId: "3"
+          "line": 2,
+          "refId": "http://localhost:3000/api/v1/comments/3"
         },
         {
-          line: 2,
-          refId: "6"
+          "line": 2,
+          "refId": "http://localhost:3000/api/v1/comments/6"
         },
         {
-          line: 3,
-          refId: "4"
+          "line": 3,
+          "refId": "http://localhost:3000/api/v1/comments/4"
         }
       ]
     },
     {
-      udiff:"diff B",
-      comments: [
+      "udiff":"ZGlmZiAtdSAtTiBjb20uYm9zY2gucnRjLnNlcnZlci5mb3JlY2FzdC9zcmMvY29tL2Jvc2NoL3J0Yy9zZXJ2ZXIvZm9yZWNhc3QvTWFpbi5qYXZhIC9kZXYvbnVsbOKGtS0tLSBjb20uYm9zY2gucnRjLnNlcnZlci5mb3JlY2FzdC9zcmMvY29tL2Jvc2NoL3J0Yy9zZXJ2ZXIvZm9yZWNhc3QvTWFpbi5qYXZhCTIwMTUtMDQtMjcgMTk6NTM6MTYuMDAwMDAwMDAwICswMjAw4oa1KysrIC9kZXYvbnVsbAkxOTcwLTAxLTAxIDAxOjAwOjAwLjAwMDAwMDAwMCArMDEwMOKGtUBAIC0zMyw2ICszMyw3IEBA4oa1IAlwdWJsaWMgc3RhdGljIHZvaWQgbWFpbihTdHJpbmdbXSBhcmdzKSAgdGhyb3dzIEpBWEJFeGNlcHRpb24sIElPRXhjZXB0aW9uLCBTQVhFeGNlcHRpb24ge+KGtSAJCS8vIFRPRE8gQXV0by1nZW5lcmF0ZWQgbWV0aG9kIHN0dWLihrUgCQkvL0NvbW1lbnQgdGVzdGluZyBkaWZm4oa1KwkJLy9Db21tZW50IHRlc3RpbmcgZGlmZiAy4oa1IAkJLy8gY3JlYXRlIHdvcmsgZGF5c+KGtSAJCVdvcmtEYXkgd29ya0RheTEgPSBuZXcgV29ya0RheSgpO+KGtSAJCXdvcmtEYXkxLnNldFdlZWtkYXkoRVdlZWtEYXlzLk1PTkRBWSk74oa1DQo=",
+      "comments": [
         {
-          line: 2,
-          refId: "3"
+          "line": 2,
+          "refId": "http://localhost:3000/api/v1/comments/3"
         },
         {
-          line: 2,
-          refId: "6"
+          "line": 2,
+          "refId": "http://localhost:3000/api/v1/comments/6"
         },
         {
-          line: 3,
-          refId: "4"
+          "line": 3,
+          "refId": "http://localhost:3000/api/v1/comments/4"
         }
       ]
     }
