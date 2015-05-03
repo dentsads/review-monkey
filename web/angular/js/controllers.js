@@ -17,7 +17,7 @@ reviewsApp.controller('ReviewDetailCtrl', function ($scope, $http, $routeParams)
     for (var i = 0 ; i < review.changes.length; i++) {
       var change = review.changes[i];
 
-      ReviewInterfaceClient.createDiffBoxWithInlineComments(i, StringUtils.b64_to_utf8(change.udiff));
+      ReviewInterfaceClient.createDiffBoxWithInlineComments(i, StringUtils.b64_to_utf8(change.udiff), change.comments);
     }
 
   });
@@ -56,13 +56,18 @@ var ReviewInterfaceClient = (function () {
       return "";
     };
 
-    constr.createDiffBoxWithInlineComments = function (diffId, uDiffString) {
+    constr.createDiffBoxWithInlineComments = function (diffId, uDiffString, comments) {
       var diffArray = uDiffString.split(/\u21B5/g)||[];
 
-      $("#diff-boxes").append(_getDiffBoxString(diffId, diffArray));
+      $("#diff-boxes").append(_createDiffBoxString(diffId, diffArray));
 
-      for (var i = 1; i < diffArray.length -3; i++) {
-        $('#diff'+diffId+'-' + i).click(_insertInlineCommentFormAfterLine(diffId, i));
+      _registerInlineCommentClickListener(diffId, diffArray);
+
+      if (comments) {
+        for (var i = 0; i < comments.length; i++) {
+          var comment = comments[i];
+          $(_createInlineCommentBoxString(i,comment.refId,"author1", "today")).insertAfter('#diff'+diffId+'-' + comment.line);
+        }
       }
     };
 
@@ -75,7 +80,13 @@ var ReviewInterfaceClient = (function () {
       };
     };
 
-    this._getDiffBoxString = function (diffId, diffArray) {
+    this._registerInlineCommentClickListener = function (diffId, diffArray) {
+      for (var i = 1; i < diffArray.length -3; i++) {
+        $('#diff'+diffId+'-' + i).click(_insertInlineCommentFormAfterLine(diffId, i));
+      }
+    };
+
+    this._createDiffBoxString = function (diffId, diffArray) {
       var diffLines = "";
 
       for (var i = 1; i < diffArray.length -3; i++) {
@@ -84,8 +95,8 @@ var ReviewInterfaceClient = (function () {
           mode = "1";
         if (diffArray[i+2].startsWith("+"))
           mode = "2";
-
-        diffLines += "<div id='diff"+diffId+"-"+i+"' class='diff"+ mode +"'>"+ diffArray[i + 2] + "</div>";
+        var l = i -1;
+        diffLines += "<div id='diff"+diffId+"-"+l+"' class='diff"+ mode +"'>"+ diffArray[i + 2] + "</div>";
       }
 
       return "<div class='row'> \
@@ -105,6 +116,21 @@ var ReviewInterfaceClient = (function () {
               </div> \
               </div>";
 
+    };
+
+    this._createInlineCommentBoxString = function (commentId, commentText, author, creationDate) {
+        return '<div id="inline-comment-'+commentId+'" class="box"> \
+                <div class="box-header with-border"> \
+                <span><b>'+author+'</b> added a note at '+creationDate+'</span> \
+                <div class="box-tools pull-right"> \
+                <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-pencil"></i></button> \
+                <button class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button> \
+                </div> \
+                </div><!-- /.box-header --> \
+                <div class="box-body"> \
+                '+commentText+' \
+                </div> \
+                </div><!-- /.box -->';
     };
 
     return constr;

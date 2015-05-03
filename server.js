@@ -423,6 +423,124 @@ var UserService = (function () {
     return constr;
 })();
 
+var ReviewRESTService = (function () {
+    this.reviewDAO;
+
+    var constr = function () {
+      reviewDAO = new ReviewDAO(dbReviews);
+    };
+
+    constr.prototype.constructor = constr;
+
+    constr.prototype.getReview = function () {
+      return function (req, res) {
+        this.reviewDAO.getReview(req.params.review_id, function(err, review) {
+          if (err) res.send(err);
+          res.json(review);
+        });
+      };
+    };
+
+    return constr;
+})();
+
+var ReviewDAO = (function () {
+    var constr = function (_reviewdb) {
+      this.dbservice = new DbService(_reviewdb);
+    };
+
+    constr.prototype.constructor = constr;
+
+    constr.prototype.getReview = function (id, callback) {
+      this.dbservice.find({ _id : id}, function(err, review) {
+        callback(err, review);
+      });
+    };
+
+    constr.prototype.updateReview = function (id, newReview, callback) {
+      var currentDatetime = new Date().toString();
+      req.body.modificationDate = currentDatetime;
+
+      this.dbservice.findOne({ _id : id }, function (err, review) {
+          if (err) callback(err);
+          review = newReview;
+          this.dbservice.update({ _id : id }, review, {}, function (err, numReplaced) {
+            callback(err, numReplaced);
+          });
+       });
+    };
+
+    constr.prototype.deleteReview = function () {
+      return function(req, res) {
+        dbReviews.remove({ _id : req.params.review_id }, {}, function (err, numRemoved) {
+          if (err) res.send(err);
+            res.json({ message: 'Review successfully deleted!'});
+        });
+       };
+    };
+
+    constr.prototype.getAllReviews = function () {
+      return function(req, res) {
+        dbReviews.find({}, function (err, reviews) {
+          if (err) res.send(err);
+          res.json(reviews);
+        });
+      };
+    };
+
+    constr.prototype.createReview = function () {
+      return function(req, res) {
+        if (!ReviewValidator.isValidReviewRequest(req, res)) return;
+
+        var currentDatetime = new Date().toString();
+        req.body.creationDate = currentDatetime;
+        req.body.modificationDate = currentDatetime;
+
+        dbReviews.insert(req.body, function (err, review) {
+          if (err) res.send(err);
+          res.json({ message: 'Review successfully created!', 'review': JSON.stringify(review) });
+        });
+      };
+    };
+
+
+    return constr;
+})();
+
+var DbService = (function () {
+    var constr = function (_db) {
+        this.db = _db;
+    };
+
+    constr.prototype.constructor = constr;
+
+    constr.prototype.find = function (queryJsonObject, callback) {
+      this.db.find(queryJsonObject, function(err, data) {
+        callback(err, data);
+      });
+    };
+
+    constr.prototype.findOne = function (queryJsonObject, callback) {
+      this.db.findOne(queryJsonObject, function(err, data) {
+        callback(err, data);
+      });
+    };
+
+    constr.prototype.update = function (queryJsonObject, newData, callback) {
+      this.db.update(queryJsonObject, newData, {}, function (err, numReplaced) {
+        callback(err, numReplaced);
+      });
+    };
+
+    constr.prototype.delete = function (queryJsonObject) {
+      this.db.remove(queryJsonObject, {}, function (err, numRemoved) {
+        callback(err, numReplaced);
+      });
+    };
+
+    return constr;
+})();
+
 router.get('/', function(req, res) {
    res.json({ message: 'Welcome to the Review Monkey API!' });
 });
@@ -431,8 +549,10 @@ router.route('/reviews')
     .post(ReviewService.createReview())
     .get(ReviewService.getAllReviews());
 
+var reviewRestService = new ReviewRESTService();
+
 router.route('/reviews/:review_id')
-    .get(ReviewService.getReview())
+    .get(reviewRestService.getReview())
     .put(ReviewService.updateReview())
     .delete(ReviewService.deleteReview());
 
