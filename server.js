@@ -1,18 +1,19 @@
-// Persistent datastore with automatic loading
-var Datastore = require('nedb');
-var express = require('express');
-var bodyParser = require('body-parser');
-var Validator = require('jsonschema').Validator;
-var http = require('http');
-var fs = require("fs");
-var async = require("async");
+// Required modules
+var Datastore   = require('nedb');
+var express     = require('express');
+var bodyParser  = require('body-parser');
+var Validator   = require('jsonschema').Validator;
+var http        = require('http');
+var fs          = require("fs");
+var async       = require("async");
+var helpers     = require('./lib/helpers');
 
 var REVIEW_SCHEMA  = JSON.parse(fs.readFileSync("./lib/model/reviewSchema.json", "utf8"));
 var COMMENT_SCHEMA = JSON.parse(fs.readFileSync("./lib/model/commentSchema.json", "utf8"));
 var USER_SCHEMA    = JSON.parse(fs.readFileSync("./lib/model/userSchema.json", "utf8"));
 
 var validator = new Validator();
-var app = express();
+var app       = express();
 
 // configure app to use bodyParser()
 // this will let us get the data from a POST
@@ -23,42 +24,11 @@ app.use(bodyParser.json());
 // =============================================================================
 var router = express.Router();              // get an instance of the express Router
 
-var dbReviews = new Datastore({ filename: './.datastore/reviews.db', autoload: true });
-var dbComments = new Datastore({ filename: './.datastore/comments.db', autoload: true });
-var dbUsers = new Datastore({ filename: './.datastore/users.db', autoload: true });
+// DB objects
+var dbReviews   = new Datastore({ filename: './.datastore/reviews.db', autoload: true });
+var dbComments  = new Datastore({ filename: './.datastore/comments.db', autoload: true });
+var dbUsers     = new Datastore({ filename: './.datastore/users.db', autoload: true });
 
-var ErrorHandler = (function () {
-    var constr = function () {
-        // the constructor
-    };
-
-    constr.createError = function (code, message) {
-      return {'errors': [{
-        'message': message,
-        'code': code
-      }]};
-    };
-
-    constr.createErrors = function (errorArray) {
-      if (!errorArray) throw new Error("errorArray must not be empty");
-
-      var errors = [];
-      for(var i = 0 ; i < errorArray.length; i++){
-        var error = errorArray[i];
-        if (!error.message) throw new Error("error.message must not be empty");
-        if (!error.code) throw new Error("error.code must not be empty");
-
-        errors.push({
-          'message': error.message,
-          'code': error.code
-        });
-      }
-
-      return {'errors': errors};
-    };
-
-    return constr;
-})();
 
 var ReviewValidator = (function () {
     var constr = function () {
@@ -68,7 +38,7 @@ var ReviewValidator = (function () {
     constr.isValidReviewRequest = function (req, res) {
       // Check if content-type is application/json*
       if (!req.is('application/json')) {
-        res.status(406).send(ErrorHandler.createError(1,"The content-type header must be set to application/json")).end();
+        res.status(406).send(helpers.ErrorHandler.createError(1,"The content-type header must be set to application/json")).end();
         return false;
       }
 
@@ -80,7 +50,7 @@ var ReviewValidator = (function () {
           var error = validationResult.errors[i];
           errorArray.push({'message': error.property + " " + error.message, 'code': 2});
         }
-        res.status(406).send(ErrorHandler.createErrors(errorArray)).end();
+        res.status(406).send(helpers.ErrorHandler.createErrors(errorArray)).end();
         return false;
       }
 
@@ -120,11 +90,11 @@ var CommentValidator = (function () {
       http.get(review.author.refId, function(authorRes) {
         console.log("Got response: " + JSON.stringify(authorRes.body));
         if (authorRes.body == 'undefined') {
-          res.status(406).send(ErrorHandler.createError(3,"Could not find user " + review.author.refId)).end();
+          res.status(406).send(helpers.ErrorHandler.createError(3,"Could not find user " + review.author.refId)).end();
           return false;
         }
       }).on('error', function(e) {
-        res.status(406).send(ErrorHandler.createError(3,"Could not find user " + review.author)).end();
+        res.status(406).send(helpers.ErrorHandler.createError(3,"Could not find user " + review.author)).end();
         return false;
         console.log("Got error: " + e.message);
       });
@@ -135,7 +105,7 @@ var CommentValidator = (function () {
       return function (err, user) {
         if (err || user.length == 0) {
           console.log("inside error");
-          res.status(406).send(ErrorHandler.createError(3,"Could not find user " + user)).end();
+          res.status(406).send(helpers.ErrorHandler.createError(3,"Could not find user " + user)).end();
           return false;
         }
 
@@ -152,7 +122,7 @@ var CommentValidator = (function () {
           var error = validationResult.errors[i];
           errorArray.push({'message': error.property + " " + error.message, 'code': 2});
         }
-        res.status(406).send(ErrorHandler.createErrors(errorArray)).end();
+        res.status(406).send(helpers.ErrorHandler.createErrors(errorArray)).end();
         return false;
       }
 
@@ -162,7 +132,7 @@ var CommentValidator = (function () {
     this._isHttpRequestValid = function (req, res) {
       // Check if content-type is application/json*
       if (!req.is('application/json')) {
-        res.status(406).send(ErrorHandler.createError(1,"The content-type header must be set to application/json")).end();
+        res.status(406).send(helpers.ErrorHandler.createError(1,"The content-type header must be set to application/json")).end();
         return false;
       }
 
@@ -184,7 +154,7 @@ var UserValidator = (function () {
     constr.isValidUserRequest = function (req, res) {
       // Check if content-type is application/json*
       if (!req.is('application/json')) {
-        res.status(406).send(ErrorHandler.createError(1,"The content-type header must be set to application/json")).end();
+        res.status(406).send(helpers.ErrorHandler.createError(1,"The content-type header must be set to application/json")).end();
         return false;
       }
 
@@ -196,7 +166,7 @@ var UserValidator = (function () {
           var error = validationResult.errors[i];
           errorArray.push({'message': error.property + " " + error.message, 'code': 2});
         }
-        res.status(406).send(ErrorHandler.createErrors(errorArray)).end();
+        res.status(406).send(helpers.ErrorHandler.createErrors(errorArray)).end();
         return false;
       }
 
@@ -425,19 +395,19 @@ var UserService = (function () {
 })();
 
 var ReviewRESTService = (function () {
-    this.reviewDAO;
-    this.userDAO;
+    var self;
 
-    var constr = function () {
-      reviewDAO = new ReviewDAO(dbReviews);
-      userDAO = new UserDAO(dbUsers);
+    var constr = function (reviewDAO, userDAO) {
+      this.reviewDAO = reviewDAO;
+      this.userDAO = userDAO;
+      self = this;
     };
 
     constr.prototype.constructor = constr;
 
     constr.prototype.getReview = function () {
       return function (req, res, next) {
-        this.reviewDAO.getReview(req.params.review_id, function(err, review) {
+        self.reviewDAO.getReview(req.params.review_id, function(err, review) {
           if (err) res.send(err);
 
           if (req.query.expand != "true") {
@@ -458,7 +428,7 @@ var ReviewRESTService = (function () {
         var currentDatetime = new Date().toString();
         req.body.modificationDate = currentDatetime;
 
-        this.reviewDAO.updateReview(req.params.review_id, req.body, function (err, numReplaced) {
+        self.reviewDAO.updateReview(req.params.review_id, req.body, function (err, numReplaced) {
           if (err) res.send(err);
           res.json(review);
         });
@@ -467,7 +437,7 @@ var ReviewRESTService = (function () {
 
     constr.prototype.deleteReview = function () {
       return function(req, res) {
-        this.reviewDAO.deleteReview(req.params.review_id, function (err, numRemoved) {
+        self.reviewDAO.deleteReview(req.params.review_id, function (err, numRemoved) {
           if (err) res.send(err);
             res.json({ message: 'Review successfully deleted!'});
         });
@@ -476,7 +446,7 @@ var ReviewRESTService = (function () {
 
     constr.prototype.getAllReviews = function () {
       return function(req, res) {
-        this.reviewDAO.getAllReviews(function (err, reviews) {
+        self.reviewDAO.getAllReviews(function (err, reviews) {
           if (err) res.send(err);
           res.json(reviews);
         });
@@ -491,7 +461,7 @@ var ReviewRESTService = (function () {
         req.body.creationDate = currentDatetime;
         req.body.modificationDate = currentDatetime;
 
-        this.reviewDAO.createReview(req.body, function (err, review) {
+        self.reviewDAO.createReview(req.body, function (err, review) {
           if (err) res.send(err);
           res.json({ message: 'Review successfully created!', 'review': JSON.stringify(review) });
         });
@@ -501,123 +471,45 @@ var ReviewRESTService = (function () {
     return constr;
 })();
 
-var ExpansionMiddleware = (function () {
-    this.reviewDAO;
-    this.userDAO;
-
-    var constr = function () {
-      reviewDAO = new ReviewDAO(dbReviews);
-      userDAO = new UserDAO(dbUsers);
-    };
-
-    constr.prototype.constructor = constr;
-
-    constr.prototype.EXPAND_REVIEW = function (req, res, next) {
-      var review = req.review;
-
-      async.parallel([
-        function(callback){
-          expandReviewAuthor(review, callback);
-        },
-        function(callback){
-          expandReviewChangeComment(review, callback);
-        }
-      ],
-      // callback
-      function(err, results) {
-        if (err) res.send(err);
-        res.json(review);
-      });
-
-    };
-
-    this.expandReviewAuthor = function (review, callback) {
-      var authorRefId = review.author.refId;
-      var authorId = authorRefId.substring(authorRefId.lastIndexOf('/')+1);
-
-      this.userDAO.getUser(authorId, function(err, author) {
-        if (err) res.send(err);
-        review.author = author[0];
-        //res.json(review);
-        callback();
-      });
-    };
-
-    this.expandReviewChangeComment = function (review, callback) {
-      var changes = review.changes;
-
-      async.each(changes,
-        function(change, callback) {
-
-          async.each(change.comments,
-
-            function(comment, callback){
-
-              var commentId = comment.refId.substring(comment.refId.lastIndexOf('/')+1);
-
-              this.userDAO.getUser("2", function(err, author) {
-                if (err) res.send(err);
-                delete comment.refId;
-                comment.comment  = author[0];
-                //res.json(review);
-                callback();
-              });
-
-            },
-
-            function(err){
-              callback();
-            }
-          );
-
-        },
-
-        function(err){
-          callback();
-        }
-      );
-    };
-
-    return constr;
-})();
-
 var ReviewDAO = (function () {
-    var constr = function (_reviewdb) {
-      this.dbservice = new DbService(_reviewdb);
+    var self;
+    var constr = function (reviewDbService) {
+      this.dbservice = reviewDbService;
+      self = this;
     };
 
     constr.prototype.constructor = constr;
 
     constr.prototype.getReview = function (id, callback) {
-      this.dbservice.find({ _id : id}, function(err, review) {
+      self.dbservice.find({ _id : id}, function(err, review) {
         callback(err, review);
       });
     };
 
     constr.prototype.updateReview = function (id, newReview, callback) {
-      this.dbservice.findOne({ _id : id }, function (err, review) {
+      self.dbservice.findOne({ _id : id }, function (err, review) {
           if (err) callback(err);
           review = newReview;
-          this.dbservice.update({ _id : id }, review, {}, function (err, numReplaced) {
+          self.dbservice.update({ _id : id }, review, {}, function (err, numReplaced) {
             callback(err, numReplaced);
           });
        });
     };
 
     constr.prototype.deleteReview = function (id, callback) {
-      this.dbservice.delete({ _id : req.params.review_id }, {}, function (err, numRemoved) {
+      self.dbservice.delete({ _id : req.params.review_id }, {}, function (err, numRemoved) {
         callback(err, numRemoved);
       });
     };
 
     constr.prototype.getAllReviews = function (callback) {
-      this.dbservice.find({}, function (err, reviews) {
+      self.dbservice.find({}, function (err, reviews) {
         callback(err, reviews);
       });
     };
 
     constr.prototype.createReview = function (newReview, callback) {
-      this.dbservice.insert(newReview, function (err, review) {
+      self.dbservice.insert(newReview, function (err, review) {
         callback(err, review);
       });
     };
@@ -627,14 +519,16 @@ var ReviewDAO = (function () {
 })();
 
 var UserDAO = (function () {
-    var constr = function (_userdb) {
-      this.dbservice = new DbService(_userdb);
+    var self;
+    var constr = function (userDbService) {
+      this.dbservice = userDbService;
+      self = this;
     };
 
     constr.prototype.constructor = constr;
 
     constr.prototype.getUser= function (id, callback) {
-      this.dbservice.find({ _id : id}, function(err, user) {
+      self.dbservice.find({ _id : id}, function(err, user) {
         callback(err, user);
       });
     };
@@ -643,8 +537,10 @@ var UserDAO = (function () {
 })();
 
 var DbService = (function () {
-    var constr = function (_db) {
-        this.db = _db;
+    var self;
+    var constr = function (db) {
+        this.db = db;
+        self = this;
     };
 
     constr.prototype.constructor = constr;
@@ -682,12 +578,21 @@ var DbService = (function () {
     return constr;
 })();
 
+// DB Abstraction objects
+var reviewDbService = new DbService(dbReviews);
+var userDbService   = new DbService(dbUsers);
+
+// DAO objects
+var reviewDAO = new ReviewDAO(reviewDbService);
+var userDAO   = new UserDAO(userDbService);
+
+// REST Service objects
+var reviewRestService   = new ReviewRESTService(reviewDAO, userDAO);
+var expansionMiddleware = new helpers.ExpansionMiddleware(reviewDAO, userDAO);
+
 router.get('/', function(req, res) {
    res.json({ message: 'Welcome to the Review Monkey API!' });
 });
-
-var reviewRestService = new ReviewRESTService();
-var expansionMiddleware = new ExpansionMiddleware();
 
 router.route('/reviews')
     .post(reviewRestService.createReview())
