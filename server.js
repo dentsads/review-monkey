@@ -526,8 +526,7 @@ var ReviewRESTService = (function () {
 
                         this.userDAO.getUser("2", function(err, author) {
                           if (err) res.send(err);
-                          console.log(author);
-                          //review[0].changes[changes.indexOf(change)].comments[comments.indexOf(comment)].comment = author[0];
+                          delete comment.refId;
                           comment.comment  = author[0];
                           //res.json(review);
                           callback();
