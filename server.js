@@ -5,6 +5,7 @@ var bodyParser = require('body-parser');
 var Validator = require('jsonschema').Validator;
 var http = require('http');
 var fs = require("fs");
+var async = require("async");
 
 var REVIEW_SCHEMA  = JSON.parse(fs.readFileSync("./lib/model/reviewSchema.json", "utf8"));
 var COMMENT_SCHEMA = JSON.parse(fs.readFileSync("./lib/model/commentSchema.json", "utf8"));
@@ -425,18 +426,248 @@ var UserService = (function () {
 
 var ReviewRESTService = (function () {
     this.reviewDAO;
+    this.userDAO;
 
     var constr = function () {
       reviewDAO = new ReviewDAO(dbReviews);
+      userDAO = new UserDAO(dbUsers);
     };
 
     constr.prototype.constructor = constr;
 
+/*
     constr.prototype.getReview = function () {
       return function (req, res) {
+        var expand = false;
+        if (req.query.expand == "true")
+          expand = true;
+
         this.reviewDAO.getReview(req.params.review_id, function(err, review) {
           if (err) res.send(err);
+
+          if (expand == false) {
+            res.json(review);
+          } else {
+            var authorRefId = review[0].author.refId;
+            var authorId = authorRefId.substring(authorRefId.lastIndexOf('/')+1);
+
+            this.userDAO.getUser(authorId, function(err, author) {
+              if (err) res.send(err);
+              review[0].author = author[0];
+              res.json(review);
+            });
+          }
+
+        });
+      };
+    };
+*/
+
+    constr.prototype.getReview = function () {
+      return function (req, res) {
+        var expand = false;
+        if (req.query.expand == "true")
+          expand = true;
+
+
+        this.reviewDAO.getReview(req.params.review_id, function(err, review) {
+          if (err) res.send(err);
+
+          if (expand == false) {
+            res.json(review);
+          } else {
+
+            async.parallel([
+              function(callback){
+                var authorRefId = review[0].author.refId;
+                var authorId = authorRefId.substring(authorRefId.lastIndexOf('/')+1);
+
+                this.userDAO.getUser(authorId, function(err, author) {
+                  if (err) res.send(err);
+                  review[0].author = author[0];
+                  //res.json(review);
+                  callback();
+                });
+
+              },
+              function(callback){
+                var changes = review[0].changes;
+
+                /*
+                for (var i = 0 ; i < changes.length; i++) {
+                  var change = changes[i];
+                  for (var j = 0 ; j < change.comments.length; j++) {
+                    var comment = change.comments[j];
+                    var commentId = comment.refId.substring(comment.refId.lastIndexOf('/')+1);
+
+                    var comm = j;
+                    var cha = i;
+                    this.userDAO.getUser("2", function(err, author) {
+                      if (err) res.send(err);
+                      console.log(author);
+                      review[0].changes[cha].comments[comm].comment = author[0];
+                      //res.json(review);
+                    });
+
+                  }
+                }
+                */
+
+                async.each(changes,
+                  // 2nd param is the function that each item is passed to
+                  function(change, callback){
+
+
+                    async.each(change.comments,
+                      // 2nd param is the function that each item is passed to
+                      function(comment, callback){
+
+                        var commentId = comment.refId.substring(comment.refId.lastIndexOf('/')+1);
+
+                        this.userDAO.getUser("2", function(err, author) {
+                          if (err) res.send(err);
+                          console.log(author);
+                          //review[0].changes[changes.indexOf(change)].comments[comments.indexOf(comment)].comment = author[0];
+                          comment.comment  = author[0];
+                          //res.json(review);
+                          callback();
+                        });
+
+                      },
+                      // 3rd param is the function to call when everything's done
+                      function(err){
+                        callback();
+                      }
+                    );
+
+                  },
+                  // 3rd param is the function to call when everything's done
+                  function(err){
+                    callback();
+                  }
+                );
+
+              }
+            ],
+            // optional callback
+            function(err, results) {
+              if (err) res.send(err);
+              res.json(review);
+            });
+
+
+          }
+
+        });
+      };
+    };
+
+    constr.prototype.expandReview = function () {
+      return function (req, res, next) {
+        var expand = false;
+        if (req.query.expand == "true")
+          expand = true;
+
+        this.reviewDAO.getReview(req.params.review_id, function(err, review) {
+          if (err) res.send(err);
+
+          if (expand == false) {
+            res.json(review);
+          } else {
+            var authorRefId = review[0].author.refId;
+            var authorId = authorRefId.substring(authorRefId.lastIndexOf('/')+1);
+
+            this.userDAO.getUser(authorId, function(err, author) {
+              if (err) res.send(err);
+              review[0].author = author[0];
+              res.json(review);
+            });
+          }
+
+        });
+      };
+    };
+
+/*
+    constr.prototype.getReview = function () {
+      return function (req, res) {
+        var expand = false;
+        if (req.query.expand == "true")
+          expand = true;
+
+        async.waterfall([
+          function(callback){
+            this.reviewDAO.getReview(req.params.review_id, function (err, review) {
+              callback(err, review);
+            });
+          },
+          function(err, review){
+            if (err) res.send(err);
+
+            if (expand == false) {
+              res.json(review);
+            } else {
+              var authorRefId = review[0].author.refId;
+              var authorId = authorRefId.substring(authorRefId.lastIndexOf('/')+1);
+
+              this.userDAO.getUser(authorId, function (err, author) {
+                callback(err, author);
+              });
+            }
+          }
+        ],
+        // optional callback
+        function(err, author) {
+          if (err) res.send(err);
+          review[0].author = author[0];
           res.json(review);
+        });
+      };
+    };
+    */
+    constr.prototype.updateReview = function () {
+      return function(req, res) {
+        if (!ReviewValidator.isValidReviewRequest(req, res)) return;
+
+        var currentDatetime = new Date().toString();
+        req.body.modificationDate = currentDatetime;
+
+        this.reviewDAO.updateReview(req.params.review_id, req.body, function (err, numReplaced) {
+          if (err) res.send(err);
+          res.json(review);
+        });
+      };
+    };
+
+    constr.prototype.deleteReview = function () {
+      return function(req, res) {
+        this.reviewDAO.deleteReview(req.params.review_id, function (err, numRemoved) {
+          if (err) res.send(err);
+            res.json({ message: 'Review successfully deleted!'});
+        });
+       };
+    };
+
+    constr.prototype.getAllReviews = function () {
+      return function(req, res) {
+        this.reviewDAO.getAllReviews(function (err, reviews) {
+          if (err) res.send(err);
+          res.json(reviews);
+        });
+      };
+    };
+
+    constr.prototype.createReview = function () {
+      return function(req, res) {
+        if (!ReviewValidator.isValidReviewRequest(req, res)) return;
+
+        var currentDatetime = new Date().toString();
+        req.body.creationDate = currentDatetime;
+        req.body.modificationDate = currentDatetime;
+
+        this.reviewDAO.createReview(req.body, function (err, review) {
+          if (err) res.send(err);
+          res.json({ message: 'Review successfully created!', 'review': JSON.stringify(review) });
         });
       };
     };
@@ -458,9 +689,6 @@ var ReviewDAO = (function () {
     };
 
     constr.prototype.updateReview = function (id, newReview, callback) {
-      var currentDatetime = new Date().toString();
-      req.body.modificationDate = currentDatetime;
-
       this.dbservice.findOne({ _id : id }, function (err, review) {
           if (err) callback(err);
           review = newReview;
@@ -470,39 +698,40 @@ var ReviewDAO = (function () {
        });
     };
 
-    constr.prototype.deleteReview = function () {
-      return function(req, res) {
-        dbReviews.remove({ _id : req.params.review_id }, {}, function (err, numRemoved) {
-          if (err) res.send(err);
-            res.json({ message: 'Review successfully deleted!'});
-        });
-       };
+    constr.prototype.deleteReview = function (id, callback) {
+      this.dbservice.delete({ _id : req.params.review_id }, {}, function (err, numRemoved) {
+        callback(err, numRemoved);
+      });
     };
 
-    constr.prototype.getAllReviews = function () {
-      return function(req, res) {
-        dbReviews.find({}, function (err, reviews) {
-          if (err) res.send(err);
-          res.json(reviews);
-        });
-      };
+    constr.prototype.getAllReviews = function (callback) {
+      this.dbservice.find({}, function (err, reviews) {
+        callback(err, reviews);
+      });
     };
 
-    constr.prototype.createReview = function () {
-      return function(req, res) {
-        if (!ReviewValidator.isValidReviewRequest(req, res)) return;
-
-        var currentDatetime = new Date().toString();
-        req.body.creationDate = currentDatetime;
-        req.body.modificationDate = currentDatetime;
-
-        dbReviews.insert(req.body, function (err, review) {
-          if (err) res.send(err);
-          res.json({ message: 'Review successfully created!', 'review': JSON.stringify(review) });
-        });
-      };
+    constr.prototype.createReview = function (newReview, callback) {
+      this.dbservice.insert(newReview, function (err, review) {
+        callback(err, review);
+      });
     };
 
+
+    return constr;
+})();
+
+var UserDAO = (function () {
+    var constr = function (_userdb) {
+      this.dbservice = new DbService(_userdb);
+    };
+
+    constr.prototype.constructor = constr;
+
+    constr.prototype.getUser= function (id, callback) {
+      this.dbservice.find({ _id : id}, function(err, user) {
+        callback(err, user);
+      });
+    };
 
     return constr;
 })();
@@ -532,9 +761,15 @@ var DbService = (function () {
       });
     };
 
-    constr.prototype.delete = function (queryJsonObject) {
+    constr.prototype.delete = function (queryJsonObject, callback) {
       this.db.remove(queryJsonObject, {}, function (err, numRemoved) {
         callback(err, numReplaced);
+      });
+    };
+
+    constr.prototype.insert = function (newData, callback) {
+      this.db.insert(newData, function(err, data) {
+        callback(err, data);
       });
     };
 
@@ -545,16 +780,16 @@ router.get('/', function(req, res) {
    res.json({ message: 'Welcome to the Review Monkey API!' });
 });
 
-router.route('/reviews')
-    .post(ReviewService.createReview())
-    .get(ReviewService.getAllReviews());
-
 var reviewRestService = new ReviewRESTService();
+
+router.route('/reviews')
+    .post(reviewRestService.createReview())
+    .get(reviewRestService.getAllReviews());
 
 router.route('/reviews/:review_id')
     .get(reviewRestService.getReview())
-    .put(ReviewService.updateReview())
-    .delete(ReviewService.deleteReview());
+    .put(reviewRestService.updateReview())
+    .delete(reviewRestService.deleteReview());
 
 router.route('/comments')
     .post(CommentService.createComment())
