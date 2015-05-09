@@ -435,195 +435,22 @@ var ReviewRESTService = (function () {
 
     constr.prototype.constructor = constr;
 
-/*
     constr.prototype.getReview = function () {
-      return function (req, res) {
-        var expand = false;
-        if (req.query.expand == "true")
-          expand = true;
-
-        this.reviewDAO.getReview(req.params.review_id, function(err, review) {
-          if (err) res.send(err);
-
-          if (expand == false) {
-            res.json(review);
-          } else {
-            var authorRefId = review[0].author.refId;
-            var authorId = authorRefId.substring(authorRefId.lastIndexOf('/')+1);
-
-            this.userDAO.getUser(authorId, function(err, author) {
-              if (err) res.send(err);
-              review[0].author = author[0];
-              res.json(review);
-            });
-          }
-
-        });
-      };
-    };
-*/
-
-    constr.prototype.getReview = function () {
-      return function (req, res) {
-        var expand = false;
-        if (req.query.expand == "true")
-          expand = true;
-
-
-        this.reviewDAO.getReview(req.params.review_id, function(err, review) {
-          if (err) res.send(err);
-
-          if (expand == false) {
-            res.json(review);
-          } else {
-
-            async.parallel([
-              function(callback){
-                var authorRefId = review[0].author.refId;
-                var authorId = authorRefId.substring(authorRefId.lastIndexOf('/')+1);
-
-                this.userDAO.getUser(authorId, function(err, author) {
-                  if (err) res.send(err);
-                  review[0].author = author[0];
-                  //res.json(review);
-                  callback();
-                });
-
-              },
-              function(callback){
-                var changes = review[0].changes;
-
-                /*
-                for (var i = 0 ; i < changes.length; i++) {
-                  var change = changes[i];
-                  for (var j = 0 ; j < change.comments.length; j++) {
-                    var comment = change.comments[j];
-                    var commentId = comment.refId.substring(comment.refId.lastIndexOf('/')+1);
-
-                    var comm = j;
-                    var cha = i;
-                    this.userDAO.getUser("2", function(err, author) {
-                      if (err) res.send(err);
-                      console.log(author);
-                      review[0].changes[cha].comments[comm].comment = author[0];
-                      //res.json(review);
-                    });
-
-                  }
-                }
-                */
-
-                async.each(changes,
-                  // 2nd param is the function that each item is passed to
-                  function(change, callback){
-
-
-                    async.each(change.comments,
-                      // 2nd param is the function that each item is passed to
-                      function(comment, callback){
-
-                        var commentId = comment.refId.substring(comment.refId.lastIndexOf('/')+1);
-
-                        this.userDAO.getUser("2", function(err, author) {
-                          if (err) res.send(err);
-                          delete comment.refId;
-                          comment.comment  = author[0];
-                          //res.json(review);
-                          callback();
-                        });
-
-                      },
-                      // 3rd param is the function to call when everything's done
-                      function(err){
-                        callback();
-                      }
-                    );
-
-                  },
-                  // 3rd param is the function to call when everything's done
-                  function(err){
-                    callback();
-                  }
-                );
-
-              }
-            ],
-            // optional callback
-            function(err, results) {
-              if (err) res.send(err);
-              res.json(review);
-            });
-
-
-          }
-
-        });
-      };
-    };
-
-    constr.prototype.expandReview = function () {
       return function (req, res, next) {
-        var expand = false;
-        if (req.query.expand == "true")
-          expand = true;
-
         this.reviewDAO.getReview(req.params.review_id, function(err, review) {
           if (err) res.send(err);
 
-          if (expand == false) {
+          if (req.query.expand != "true") {
             res.json(review);
           } else {
-            var authorRefId = review[0].author.refId;
-            var authorId = authorRefId.substring(authorRefId.lastIndexOf('/')+1);
-
-            this.userDAO.getUser(authorId, function(err, author) {
-              if (err) res.send(err);
-              review[0].author = author[0];
-              res.json(review);
-            });
+            req.review = review[0];
+            next();
           }
 
         });
       };
     };
 
-/*
-    constr.prototype.getReview = function () {
-      return function (req, res) {
-        var expand = false;
-        if (req.query.expand == "true")
-          expand = true;
-
-        async.waterfall([
-          function(callback){
-            this.reviewDAO.getReview(req.params.review_id, function (err, review) {
-              callback(err, review);
-            });
-          },
-          function(err, review){
-            if (err) res.send(err);
-
-            if (expand == false) {
-              res.json(review);
-            } else {
-              var authorRefId = review[0].author.refId;
-              var authorId = authorRefId.substring(authorRefId.lastIndexOf('/')+1);
-
-              this.userDAO.getUser(authorId, function (err, author) {
-                callback(err, author);
-              });
-            }
-          }
-        ],
-        // optional callback
-        function(err, author) {
-          if (err) res.send(err);
-          review[0].author = author[0];
-          res.json(review);
-        });
-      };
-    };
-    */
     constr.prototype.updateReview = function () {
       return function(req, res) {
         if (!ReviewValidator.isValidReviewRequest(req, res)) return;
@@ -669,6 +496,86 @@ var ReviewRESTService = (function () {
           res.json({ message: 'Review successfully created!', 'review': JSON.stringify(review) });
         });
       };
+    };
+
+    return constr;
+})();
+
+var ExpansionMiddleware = (function () {
+    this.reviewDAO;
+    this.userDAO;
+
+    var constr = function () {
+      reviewDAO = new ReviewDAO(dbReviews);
+      userDAO = new UserDAO(dbUsers);
+    };
+
+    constr.prototype.constructor = constr;
+
+    constr.prototype.EXPAND_REVIEW = function (req, res, next) {
+      var review = req.review;
+
+      async.parallel([
+        function(callback){
+          expandReviewAuthor(review, callback);
+        },
+        function(callback){
+          expandReviewChangeComment(review, callback);
+        }
+      ],
+      // callback
+      function(err, results) {
+        if (err) res.send(err);
+        res.json(review);
+      });
+
+    };
+
+    this.expandReviewAuthor = function (review, callback) {
+      var authorRefId = review.author.refId;
+      var authorId = authorRefId.substring(authorRefId.lastIndexOf('/')+1);
+
+      this.userDAO.getUser(authorId, function(err, author) {
+        if (err) res.send(err);
+        review.author = author[0];
+        //res.json(review);
+        callback();
+      });
+    };
+
+    this.expandReviewChangeComment = function (review, callback) {
+      var changes = review.changes;
+
+      async.each(changes,
+        function(change, callback) {
+
+          async.each(change.comments,
+
+            function(comment, callback){
+
+              var commentId = comment.refId.substring(comment.refId.lastIndexOf('/')+1);
+
+              this.userDAO.getUser("2", function(err, author) {
+                if (err) res.send(err);
+                delete comment.refId;
+                comment.comment  = author[0];
+                //res.json(review);
+                callback();
+              });
+
+            },
+
+            function(err){
+              callback();
+            }
+          );
+
+        },
+
+        function(err){
+          callback();
+        }
+      );
     };
 
     return constr;
@@ -780,13 +687,14 @@ router.get('/', function(req, res) {
 });
 
 var reviewRestService = new ReviewRESTService();
+var expansionMiddleware = new ExpansionMiddleware();
 
 router.route('/reviews')
     .post(reviewRestService.createReview())
     .get(reviewRestService.getAllReviews());
 
 router.route('/reviews/:review_id')
-    .get(reviewRestService.getReview())
+    .get(reviewRestService.getReview(), expansionMiddleware.EXPAND_REVIEW)
     .put(reviewRestService.updateReview())
     .delete(reviewRestService.deleteReview());
 
