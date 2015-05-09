@@ -1,18 +1,12 @@
-// Required modules
+// Required dependencies
 var Datastore   = require('nedb');
 var express     = require('express');
 var bodyParser  = require('body-parser');
-var Validator   = require('jsonschema').Validator;
 var http        = require('http');
 var async       = require("async");
 var fs          = require("fs");
 var helpers     = require('./lib/helpers');
 
-var REVIEW_SCHEMA  = JSON.parse(fs.readFileSync("./lib/model/reviewSchema.json", "utf8"));
-var COMMENT_SCHEMA = JSON.parse(fs.readFileSync("./lib/model/commentSchema.json", "utf8"));
-var USER_SCHEMA    = JSON.parse(fs.readFileSync("./lib/model/userSchema.json", "utf8"));
-
-var validator = new Validator();
 var app       = express();
 
 // configure app to use bodyParser()
@@ -28,158 +22,6 @@ var router = express.Router();              // get an instance of the express Ro
 var dbReviews   = new Datastore({ filename: './.datastore/reviews.db', autoload: true });
 var dbComments  = new Datastore({ filename: './.datastore/comments.db', autoload: true });
 var dbUsers     = new Datastore({ filename: './.datastore/users.db', autoload: true });
-
-// Request Validators
-var ReviewValidator = (function () {
-    var constr = function () {
-        // the constructor
-    };
-
-    constr.isValidReviewRequest = function (req, res) {
-      // Check if content-type is application/json*
-      if (!req.is('application/json')) {
-        res.status(406).send(helpers.ErrorHandler.createError(1,"The content-type header must be set to application/json")).end();
-        return false;
-      }
-
-      // Validate request json message against schema in reviewSchema.json
-      var validationResult = _validateReviewObject(req.body);
-      if (validationResult.errors.length !== 0) {
-        var errorArray = [];
-        for (var i = 0 ; i < validationResult.errors.length; i++) {
-          var error = validationResult.errors[i];
-          errorArray.push({'message': error.property + " " + error.message, 'code': 2});
-        }
-        res.status(406).send(helpers.ErrorHandler.createErrors(errorArray)).end();
-        return false;
-      }
-
-      // If this point is reached, then the request seems to be valid
-      return true;
-    };
-
-    this._validateReviewObject = function (review) {
-      return validator.validate(review, REVIEW_SCHEMA);
-    };
-
-    return constr;
-})();
-
-var CommentValidator = (function () {
-    var constr = function () {
-        // the constructor
-    };
-
-    constr.isValidCommentRequest = function (req, res) {
-      if (!_isHttpRequestValid(req, res)) return false;
-      if (!_isSchematicallyValid(req, res)) return false;
-      //if (!_isSemanticallyValid(req, res)) return false;
-
-      // If this point is reached, then the request seems to be valid
-      return true;
-    };
-
-    constr.isSemanticallyValid = function (req, res, callback) {
-      var review = req.body;
-      console.log("Got response: " + review.author.refId);
-      if (review.author)
-      dbUsers.find({ _id : review.author.refId}, function(err, user) {
-        return callback(err, user);
-      });
-      /*
-      http.get(review.author.refId, function(authorRes) {
-        console.log("Got response: " + JSON.stringify(authorRes.body));
-        if (authorRes.body == 'undefined') {
-          res.status(406).send(helpers.ErrorHandler.createError(3,"Could not find user " + review.author.refId)).end();
-          return false;
-        }
-      }).on('error', function(e) {
-        res.status(406).send(helpers.ErrorHandler.createError(3,"Could not find user " + review.author)).end();
-        return false;
-        console.log("Got error: " + e.message);
-      });
-      */
-    };
-
-    constr._isSemanticallyValidCallback = function (res) {
-      return function (err, user) {
-        if (err || user.length == 0) {
-          console.log("inside error");
-          res.status(406).send(helpers.ErrorHandler.createError(3,"Could not find user " + user)).end();
-          return false;
-        }
-
-        return true;
-      };
-    };
-
-    this._isSchematicallyValid = function (req, res) {
-      // Validate comment json message against schema in commentSchema.json
-      var validationResult = _validateCommentObject(req.body);
-      if (validationResult.errors.length !== 0) {
-        var errorArray = [];
-        for (var i = 0 ; i < validationResult.errors.length; i++) {
-          var error = validationResult.errors[i];
-          errorArray.push({'message': error.property + " " + error.message, 'code': 2});
-        }
-        res.status(406).send(helpers.ErrorHandler.createErrors(errorArray)).end();
-        return false;
-      }
-
-      return true;
-    };
-
-    this._isHttpRequestValid = function (req, res) {
-      // Check if content-type is application/json*
-      if (!req.is('application/json')) {
-        res.status(406).send(helpers.ErrorHandler.createError(1,"The content-type header must be set to application/json")).end();
-        return false;
-      }
-
-      return true;
-    };
-
-    this._validateCommentObject = function (comment) {
-      return validator.validate(comment, COMMENT_SCHEMA);
-    };
-
-    return constr;
-})();
-
-var UserValidator = (function () {
-    var constr = function () {
-        // the constructor
-    };
-
-    constr.isValidUserRequest = function (req, res) {
-      // Check if content-type is application/json*
-      if (!req.is('application/json')) {
-        res.status(406).send(helpers.ErrorHandler.createError(1,"The content-type header must be set to application/json")).end();
-        return false;
-      }
-
-      // Validate user json message against schema in commentSchema.json
-      var validationResult = _validateUserObject(req.body);
-      if (validationResult.errors.length !== 0) {
-        var errorArray = [];
-        for (var i = 0 ; i < validationResult.errors.length; i++) {
-          var error = validationResult.errors[i];
-          errorArray.push({'message': error.property + " " + error.message, 'code': 2});
-        }
-        res.status(406).send(helpers.ErrorHandler.createErrors(errorArray)).end();
-        return false;
-      }
-
-      // If this point is reached, then the request seems to be valid
-      return true;
-    };
-
-    this._validateUserObject = function (user) {
-      return validator.validate(user, USER_SCHEMA);
-    };
-
-    return constr;
-})();
 
 // REST Services
 var ReviewRESTService = (function () {
@@ -371,9 +213,7 @@ var CommentRESTService = (function () {
     };
 
     constr.prototype.updateComment = function () {
-      return function(req, res) {
-        if (!CommentValidator.isValidCommentRequest(req, res)) return;
-
+      return function(req, res, next) {
         var currentDatetime = new Date().toString();
         req.body.modificationDate = currentDatetime;
 
@@ -409,9 +249,7 @@ var CommentRESTService = (function () {
     };
 
     constr.prototype.createComment = function () {
-      return function(req, res) {
-        if (!CommentValidator.isValidCommentRequest(req, res)) return;
-
+      return function(req, res, next) {
         var currentDatetime = new Date().toString();
         req.body.creationDate = currentDatetime;
         req.body.modificationDate = currentDatetime;
@@ -425,28 +263,6 @@ var CommentRESTService = (function () {
 
     return constr;
 })();
-
-
-/*
-var ReviewDAO = (function () {
-    var self;
-    var constr = function (crudService) {
-      this.crudService = crudService;
-      this.crudService.name = "reviewDaoService";
-      self = this;
-    };
-
-    constr.prototype.constructor = constr;
-    constr.prototype.getReview = function (id, callback) { console.log("review Dao aufgerufen"); return self.crudService.getEntity(id, callback);};
-    constr.prototype.updateReview = function (id, newEntity, callback) { return self.crudService.updateEntity(id, newEntity, callback);};
-    constr.prototype.deleteReview = function (id, callback) { return self.crudService.deleteEntity(id, callback);};
-    constr.prototype.getAllReviews = function (callback) { return self.crudService.getAllEntities(callback);};
-    constr.prototype.createReview = function (newEntity, callback) { return self.crudService.createEntity(newEntity, callback);};
-
-
-    return constr;
-})();
-*/
 
 // DAOs
 var ReviewDAO = (function () {
@@ -594,54 +410,7 @@ var CommentDAO = (function () {
     return constr;
 })();
 
-var CRUDDAO = (function () {
-    var self;
-    var constr = function (dbService) {
-      this.dbservice = dbService;
-      self = this;
-    };
-
-    constr.prototype.constructor = constr;
-
-    constr.prototype.getEntity= function (id, callback) {
-      console.log("abstract Dao aufgerufen");
-      self.dbservice.find({ _id : id}, function(err, entity) {
-        callback(err, entity);
-      });
-    };
-
-    constr.prototype.updateEntity = function (id, newEntity, callback) {
-      self.dbservice.findOne({ _id : id }, function (err, entity) {
-          if (err) callback(err);
-          entity = newEntity;
-          self.dbservice.update({ _id : id }, entity, {}, function (err, numReplaced) {
-            callback(err, numReplaced);
-          });
-       });
-    };
-
-    constr.prototype.deleteEntity = function (id, callback) {
-      self.dbservice.delete({ _id : id }, {}, function (err, numRemoved) {
-        callback(err, numRemoved);
-      });
-    };
-
-    constr.prototype.getAllEntities = function (callback) {
-      self.dbservice.find({}, function (err, entities) {
-        callback(err, entities);
-      });
-    };
-
-    constr.prototype.createEntity = function (newEntity, callback) {
-      self.dbservice.insert(newEntity, function (err, entity) {
-        if (err) callback(err);
-        callback(err, entity);
-      });
-    };
-
-    return constr;
-})();
-
+// Db Service
 var DbService = (function () {
     var self;
     var constr = function (db) {
@@ -699,6 +468,7 @@ var reviewRestService   = new ReviewRESTService(reviewDAO, userDAO);
 var userRestService     = new UserRESTService(reviewDAO, userDAO);
 var commentRestService  = new CommentRESTService(reviewDAO, userDAO, commentDAO);
 var mid                 = new helpers.ExpansionMiddleware(reviewDAO, userDAO, commentDAO);
+var val                 = new helpers.ValidationMiddleware(reviewDAO, userDAO, commentDAO);
 
 router.get('/', function(req, res) {
    res.json({ message: 'Welcome to the Review Monkey API!' });
@@ -714,12 +484,12 @@ router.route('/reviews/:review_id')
     .delete(reviewRestService.deleteReview());
 
 router.route('/comments')
-    .post(commentRestService.createComment())
+    .post(val.VALIDATE_COMMENT, commentRestService.createComment())
     .get(commentRestService.getAllComments(), mid.EXPAND_COMMENTS);
 
 router.route('/comments/:comment_id')
     .get(commentRestService.getComment(), mid.EXPAND_COMMENT)
-    .put(commentRestService.updateComment())
+    .put(val.VALIDATE_COMMENT, commentRestService.updateComment())
     .delete(commentRestService.deleteComment());
 
 router.route('/users')
