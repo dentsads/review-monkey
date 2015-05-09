@@ -29,7 +29,7 @@ var dbReviews   = new Datastore({ filename: './.datastore/reviews.db', autoload:
 var dbComments  = new Datastore({ filename: './.datastore/comments.db', autoload: true });
 var dbUsers     = new Datastore({ filename: './.datastore/users.db', autoload: true });
 
-
+// Request Validators
 var ReviewValidator = (function () {
     var constr = function () {
         // the constructor
@@ -181,151 +181,7 @@ var UserValidator = (function () {
     return constr;
 })();
 
-var CommentService = (function () {
-    var constr = function () {
-        // the constructor
-    };
-
-    constr.getComment = function () {
-      return function (req, res) {
-        dbComments.find({ _id : req.params.comment_id}, function(err, comment) {
-          if (err) res.send(err);
-          res.json(comment);
-        });
-      };
-    };
-
-    constr.updateComment = function () {
-      return function(req, res) {
-        if (!CommentValidator.isValidCommentRequest(req, res)) return;
-
-        var currentDatetime = new Date().toString();
-        req.body.modificationDate = currentDatetime;
-
-        dbComments.findOne({ _id : req.params.comment_id }, function (err, comment) {
-            if (err) res.send(err);
-            comment = req.body;
-            dbComments.update({ _id : req.params.comment_id }, req.body, {}, function (err, numReplaced) {
-                 if (err) res.send(err);
-              res.json(comment);
-            });
-         });
-      };
-    };
-
-    constr.deleteComment = function () {
-      return function(req, res) {
-        dbComments.remove({ _id : req.params.comment_id }, {}, function (err, numRemoved) {
-  			  if (err) res.send(err);
-  			    res.json({ message: 'Comment successfully deleted!' });
-  		  });
-  	   };
-    };
-
-    constr.getAllComments = function () {
-      return function(req, res) {
-        dbComments.find({}, function (err, comments) {
-          if (err) res.send(err);
-          res.json(comments);
-        });
-      };
-    };
-
-    constr.createComment = function () {
-      return function(req, res) {
-        if (!CommentValidator.isValidCommentRequest(req, res)) return;
-        //if (!CommentValidator.isSemanticallyValid(req, res,
-        //     CommentValidator._isSemanticallyValidCallback(res))) return;
-
-        var currentDatetime = new Date().toString();
-        req.body.creationDate = currentDatetime;
-        req.body.modificationDate = currentDatetime;
-
-        dbComments.insert(req.body, function (err, comment) {
-      		if (err) res.send(err);
-      		res.json({ message: 'Comment successfully created!', 'comment': JSON.stringify(comment) });
-	      });
-      };
-    };
-
-    return constr;
-})();
-
-var UserService = (function () {
-    var constr = function () {
-        // the constructor
-    };
-
-    constr.getUser = function () {
-      return function (req, res) {
-        dbUsers.find({ _id : req.params.user_id}, function(err, user) {
-          if (err) res.send(err);
-          res.json(user);
-        });
-      };
-    };
-
-    constr.updateUser = function () {
-      return function(req, res) {
-        if (!UserValidator.isValidUserRequest(req, res)) return;
-
-        dbUsers.findOne({ _id : req.params.user_id }, function (err, user) {
-            if (err) res.send(err);
-            user = req.body;
-            dbUsers.update({ _id : req.params.user_id }, req.body, {}, function (err, numReplaced) {
-                 if (err) res.send(err);
-              res.json(user);
-            });
-         });
-      };
-    };
-
-    constr.deleteUser = function () {
-      return function(req, res) {
-        dbUsers.remove({ _id : req.params.user_id }, {}, function (err, numRemoved) {
-  			  if (err) res.send(err);
-  			    res.json({ message: 'User successfully deleted!' });
-  		  });
-  	   };
-    };
-
-    constr.getAllUsers = function () {
-      return function(req, res) {
-        dbUsers.find({}, function (err, users) {
-          if (err) res.send(err);
-          res.json(users);
-        });
-      };
-    };
-
-    constr.createUser = function () {
-      return function(req, res) {
-        if (!UserValidator.isValidUserRequest(req, res)) return;
-
-        dbUsers.insert(req.body, function (err, user) {
-      		if (err) res.send(err);
-
-          if (user.avatarImage)
-            saveAvatarImage(user.avatarImage, user.id);
-
-      		res.json({ message: 'User successfully created!', 'user': JSON.stringify(user) });
-	      });
-      };
-    };
-
-    this.saveAvatarImage = function (b64Data, userId) {
-      fs.writeFile("./web/dist/img/" + userId + ".png", b64Data, {'encoding': 'base64', 'flags': 'wx'}, function(err) {
-        if(err) {
-          console.log(err);
-        } else {
-          console.log("The file was saved as " + "./web/dist/img/" + userId + ".png");
-        }
-      });
-    }
-
-    return constr;
-})();
-
+// REST Services
 var ReviewRESTService = (function () {
     var self;
 
@@ -377,10 +233,16 @@ var ReviewRESTService = (function () {
     };
 
     constr.prototype.getAllReviews = function () {
-      return function(req, res) {
+      return function(req, res, next) {
         self.reviewDAO.getAllReviews(function (err, reviews) {
           if (err) res.send(err);
-          res.json(reviews);
+
+          if (req.query.expand != "true") {
+            res.json(reviews);
+          } else {
+            req.reviews = reviews;
+            next();
+          }
         });
       };
     };
@@ -532,10 +394,16 @@ var CommentRESTService = (function () {
     };
 
     constr.prototype.getAllComments = function () {
-      return function(req, res) {
+      return function(req, res, next) {
         self.commentDAO.getAllComments(function (err, comments) {
           if (err) res.send(err);
-          res.json(comments);
+
+          if (req.query.expand != "true") {
+            res.json(comments);
+          } else {
+            req.comments = comments;
+            next();
+          }
         });
       };
     };
@@ -580,6 +448,7 @@ var ReviewDAO = (function () {
 })();
 */
 
+// DAOs
 var ReviewDAO = (function () {
     var self;
     var constr = function (userDbService) {
@@ -823,13 +692,13 @@ var commentDbService  = new DbService(dbComments);
 // DAO objects
 var reviewDAO   = new ReviewDAO(reviewDbService);
 var userDAO     = new UserDAO(userDbService);
-var CommentDAO  = new CommentDAO(commentDbService);
+var commentDAO  = new CommentDAO(commentDbService);
 
 // REST Service objects
 var reviewRestService   = new ReviewRESTService(reviewDAO, userDAO);
 var userRestService     = new UserRESTService(reviewDAO, userDAO);
 var commentRestService  = new CommentRESTService(reviewDAO, userDAO, commentDAO);
-var mid                 = new helpers.ExpansionMiddleware(reviewDAO, userDAO);
+var mid                 = new helpers.ExpansionMiddleware(reviewDAO, userDAO, commentDAO);
 
 router.get('/', function(req, res) {
    res.json({ message: 'Welcome to the Review Monkey API!' });
@@ -837,19 +706,19 @@ router.get('/', function(req, res) {
 
 router.route('/reviews')
     .post(reviewRestService.createReview())
-    .get(reviewRestService.getAllReviews());
+    .get(reviewRestService.getAllReviews(), mid.EXPAND_REVIEWS);
 
 router.route('/reviews/:review_id')
-    .get(reviewRestService.getReview(), mid.EXPAND_REVIEWS)
+    .get(reviewRestService.getReview(), mid.EXPAND_REVIEW)
     .put(reviewRestService.updateReview())
     .delete(reviewRestService.deleteReview());
 
 router.route('/comments')
     .post(commentRestService.createComment())
-    .get(commentRestService.getAllComments());
+    .get(commentRestService.getAllComments(), mid.EXPAND_COMMENTS);
 
 router.route('/comments/:comment_id')
-    .get(commentRestService.getComment(), mid.EXPAND_COMMENTS)
+    .get(commentRestService.getComment(), mid.EXPAND_COMMENT)
     .put(commentRestService.updateComment())
     .delete(commentRestService.deleteComment());
 
