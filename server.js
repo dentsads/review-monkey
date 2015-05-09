@@ -4,8 +4,8 @@ var express     = require('express');
 var bodyParser  = require('body-parser');
 var Validator   = require('jsonschema').Validator;
 var http        = require('http');
-var fs          = require("fs");
 var async       = require("async");
+var fs          = require("fs");
 var helpers     = require('./lib/helpers');
 
 var REVIEW_SCHEMA  = JSON.parse(fs.readFileSync("./lib/model/reviewSchema.json", "utf8"));
@@ -176,74 +176,6 @@ var UserValidator = (function () {
 
     this._validateUserObject = function (user) {
       return validator.validate(user, USER_SCHEMA);
-    };
-
-    return constr;
-})();
-
-var ReviewService = (function () {
-    var constr = function () {
-        // the constructor
-    };
-
-    constr.getReview = function () {
-      return function (req, res) {
-        dbReviews.find({ _id : req.params.review_id}, function(err, review) {
-          if (err) res.send(err);
-          res.json(review);
-        });
-      };
-    };
-
-    constr.updateReview = function () {
-      return function(req, res) {
-        if (!ReviewValidator.isValidReviewRequest(req, res)) return;
-
-        var currentDatetime = new Date().toString();
-        req.body.modificationDate = currentDatetime;
-
-        dbReviews.findOne({ _id : req.params.review_id }, function (err, review) {
-      			if (err) res.send(err);
-      			review = req.body;
-            dbReviews.update({ _id : req.params.review_id }, req.body, {}, function (err, numReplaced) {
-      			     if (err) res.send(err);
-      			  res.json(review);
-      			});
-  	     });
-      };
-    };
-
-    constr.deleteReview = function () {
-      return function(req, res) {
-        dbReviews.remove({ _id : req.params.review_id }, {}, function (err, numRemoved) {
-  			  if (err) res.send(err);
-  			    res.json({ message: 'Review successfully deleted!'});
-  		  });
-  	   };
-    };
-
-    constr.getAllReviews = function () {
-      return function(req, res) {
-        dbReviews.find({}, function (err, reviews) {
-    			if (err) res.send(err);
-    			res.json(reviews);
-    		});
-      };
-    };
-
-    constr.createReview = function () {
-      return function(req, res) {
-        if (!ReviewValidator.isValidReviewRequest(req, res)) return;
-
-        var currentDatetime = new Date().toString();
-        req.body.creationDate = currentDatetime;
-        req.body.modificationDate = currentDatetime;
-
-        dbReviews.insert(req.body, function (err, review) {
-      		if (err) res.send(err);
-      		res.json({ message: 'Review successfully created!', 'review': JSON.stringify(review) });
-	      });
-      };
     };
 
     return constr;
@@ -430,7 +362,7 @@ var ReviewRESTService = (function () {
 
         self.reviewDAO.updateReview(req.params.review_id, req.body, function (err, numReplaced) {
           if (err) res.send(err);
-          res.json(review);
+          res.json({ message: 'Review successfully updated!'});
         });
       };
     };
@@ -471,18 +403,195 @@ var ReviewRESTService = (function () {
     return constr;
 })();
 
+var UserRESTService = (function () {
+    var self;
+
+    var constr = function (reviewDAO, userDAO) {
+      this.reviewDAO = reviewDAO;
+      this.userDAO = userDAO;
+      self = this;
+    };
+
+    constr.prototype.constructor = constr;
+
+    constr.prototype.getUser = function () {
+      return function (req, res, next) {
+        self.userDAO.getUser(req.params.user_id, function(err, user) {
+          if (err) res.send(err);
+
+          if (req.query.expand != "true") {
+            res.json(user);
+          } else {
+            req.user = user[0];
+            next();
+          }
+
+        });
+      };
+    };
+
+    constr.prototype.updateUser = function () {
+      return function(req, res) {
+        if (!UserValidator.isValidUserRequest(req, res)) return;
+
+        var currentDatetime = new Date().toString();
+        req.body.modificationDate = currentDatetime;
+
+        self.userDAO.updateUser(req.params.user_id, req.body, function (err, numReplaced) {
+          if (err) res.send(err);
+          res.json({ message: 'User successfully updated!'});
+        });
+      };
+    };
+
+    constr.prototype.deleteUser = function () {
+      return function(req, res) {
+        self.userDAO.deleteUser(req.params.user_id, function (err, numRemoved) {
+          if (err) res.send(err);
+            res.json({ message: 'User successfully deleted!'});
+        });
+       };
+    };
+
+    constr.prototype.getAllUsers = function () {
+      return function(req, res) {
+        self.userDAO.getAllUsers(function (err, users) {
+          if (err) res.send(err);
+          res.json(users);
+        });
+      };
+    };
+
+    constr.prototype.createUser = function () {
+      return function(req, res) {
+        if (!UserValidator.isValidUserRequest(req, res)) return;
+
+        var currentDatetime = new Date().toString();
+        req.body.creationDate = currentDatetime;
+        req.body.modificationDate = currentDatetime;
+
+        self.userDAO.createUser(req.body, function (err, user) {
+          if (err) res.send(err);
+          res.json({ message: 'User successfully created!', 'review': JSON.stringify(user) });
+        });
+      };
+    };
+
+    return constr;
+})();
+
+var CommentRESTService = (function () {
+    var self;
+
+    var constr = function (reviewDAO, userDAO, commentDAO) {
+      this.reviewDAO = reviewDAO;
+      this.userDAO = userDAO;
+      this.commentDAO = commentDAO;
+      self = this;
+    };
+
+    constr.prototype.constructor = constr;
+
+    constr.prototype.getComment = function () {
+      return function (req, res, next) {
+        self.commentDAO.getComment(req.params.comment_id, function(err, comment) {
+          if (err) res.send(err);
+
+          if (req.query.expand != "true") {
+            res.json(comment);
+          } else {
+            req.comment = comment[0];
+            next();
+          }
+
+        });
+      };
+    };
+
+    constr.prototype.updateComment = function () {
+      return function(req, res) {
+        if (!CommentValidator.isValidCommentRequest(req, res)) return;
+
+        var currentDatetime = new Date().toString();
+        req.body.modificationDate = currentDatetime;
+
+        self.commentDAO.updateComment(req.params.comment_id, req.body, function (err, numReplaced) {
+          if (err) res.send(err);
+          res.json({ message: 'Comment successfully updated!'});
+        });
+      };
+    };
+
+    constr.prototype.deleteComment = function () {
+      return function(req, res) {
+        self.commentDAO.deleteComment(req.params.comment_id, function (err, numRemoved) {
+          if (err) res.send(err);
+            res.json({ message: 'Comment successfully deleted!'});
+        });
+       };
+    };
+
+    constr.prototype.getAllComments = function () {
+      return function(req, res) {
+        self.commentDAO.getAllComments(function (err, comments) {
+          if (err) res.send(err);
+          res.json(comments);
+        });
+      };
+    };
+
+    constr.prototype.createComment = function () {
+      return function(req, res) {
+        if (!CommentValidator.isValidCommentRequest(req, res)) return;
+
+        var currentDatetime = new Date().toString();
+        req.body.creationDate = currentDatetime;
+        req.body.modificationDate = currentDatetime;
+
+        self.commentDAO.createComment(req.body, function (err, comment) {
+          if (err) res.send(err);
+          res.json({ message: 'Comment successfully created!', 'review': JSON.stringify(comment) });
+        });
+      };
+    };
+
+    return constr;
+})();
+
+
+/*
 var ReviewDAO = (function () {
     var self;
-    var constr = function (reviewDbService) {
+    var constr = function (crudService) {
+      this.crudService = crudService;
+      this.crudService.name = "reviewDaoService";
+      self = this;
+    };
+
+    constr.prototype.constructor = constr;
+    constr.prototype.getReview = function (id, callback) { console.log("review Dao aufgerufen"); return self.crudService.getEntity(id, callback);};
+    constr.prototype.updateReview = function (id, newEntity, callback) { return self.crudService.updateEntity(id, newEntity, callback);};
+    constr.prototype.deleteReview = function (id, callback) { return self.crudService.deleteEntity(id, callback);};
+    constr.prototype.getAllReviews = function (callback) { return self.crudService.getAllEntities(callback);};
+    constr.prototype.createReview = function (newEntity, callback) { return self.crudService.createEntity(newEntity, callback);};
+
+
+    return constr;
+})();
+*/
+
+var ReviewDAO = (function () {
+    var self;
+    var constr = function (userDbService) {
       this.dbservice = reviewDbService;
       self = this;
     };
 
     constr.prototype.constructor = constr;
 
-    constr.prototype.getReview = function (id, callback) {
-      self.dbservice.find({ _id : id}, function(err, review) {
-        callback(err, review);
+    constr.prototype.getReview= function (id, callback) {
+      self.dbservice.find({ _id : id}, function(err, user) {
+        callback(err, user);
       });
     };
 
@@ -497,7 +606,7 @@ var ReviewDAO = (function () {
     };
 
     constr.prototype.deleteReview = function (id, callback) {
-      self.dbservice.delete({ _id : req.params.review_id }, {}, function (err, numRemoved) {
+      self.dbservice.delete({ _id : id }, {}, function (err, numRemoved) {
         callback(err, numRemoved);
       });
     };
@@ -510,10 +619,10 @@ var ReviewDAO = (function () {
 
     constr.prototype.createReview = function (newReview, callback) {
       self.dbservice.insert(newReview, function (err, review) {
+        if (err) callback(err);
         callback(err, review);
       });
     };
-
 
     return constr;
 })();
@@ -530,6 +639,134 @@ var UserDAO = (function () {
     constr.prototype.getUser= function (id, callback) {
       self.dbservice.find({ _id : id}, function(err, user) {
         callback(err, user);
+      });
+    };
+
+    constr.prototype.updateUser = function (id, newUser, callback) {
+      self.dbservice.findOne({ _id : id }, function (err, user) {
+          if (err) callback(err);
+          user = newUser;
+          self.dbservice.update({ _id : id }, user, {}, function (err, numReplaced) {
+            callback(err, numReplaced);
+          });
+       });
+    };
+
+    constr.prototype.deleteUser = function (id, callback) {
+      self.dbservice.delete({ _id : id }, {}, function (err, numRemoved) {
+        callback(err, numRemoved);
+      });
+    };
+
+    constr.prototype.getAllUsers = function (callback) {
+      self.dbservice.find({}, function (err, users) {
+        callback(err, users);
+      });
+    };
+
+    constr.prototype.createUser = function (newUser, callback) {
+      self.dbservice.insert(newUser, function (err, user) {
+        if (err) callback(err);
+
+        //if (newUser.avatarImage)
+        //  helpers.Utils.saveB64AvatarImage(user.avatarImage, "./web/dist/img/" + user.id + ".png");
+
+        callback(err, user);
+      });
+    };
+
+    return constr;
+})();
+
+var CommentDAO = (function () {
+    var self;
+    var constr = function (commentDbService) {
+      this.dbservice = commentDbService;
+      self = this;
+    };
+
+    constr.prototype.constructor = constr;
+
+    constr.prototype.getComment= function (id, callback) {
+      self.dbservice.find({ _id : id}, function(err, comment) {
+        callback(err, comment);
+      });
+    };
+
+    constr.prototype.updateComment = function (id, newComment, callback) {
+      self.dbservice.findOne({ _id : id }, function (err, comment) {
+          if (err) callback(err);
+          comment = newComment;
+          self.dbservice.update({ _id : id }, comment, {}, function (err, numReplaced) {
+            callback(err, numReplaced);
+          });
+       });
+    };
+
+    constr.prototype.deleteComment = function (id, callback) {
+      self.dbservice.delete({ _id : id }, {}, function (err, numRemoved) {
+        callback(err, numRemoved);
+      });
+    };
+
+    constr.prototype.getAllComments = function (callback) {
+      self.dbservice.find({}, function (err, comments) {
+        callback(err, comments);
+      });
+    };
+
+    constr.prototype.createComment = function (newComment, callback) {
+      self.dbservice.insert(newComment, function (err, comment) {
+        if (err) callback(err);
+        callback(err, comment);
+      });
+    };
+
+    return constr;
+})();
+
+var CRUDDAO = (function () {
+    var self;
+    var constr = function (dbService) {
+      this.dbservice = dbService;
+      self = this;
+    };
+
+    constr.prototype.constructor = constr;
+
+    constr.prototype.getEntity= function (id, callback) {
+      console.log("abstract Dao aufgerufen");
+      self.dbservice.find({ _id : id}, function(err, entity) {
+        callback(err, entity);
+      });
+    };
+
+    constr.prototype.updateEntity = function (id, newEntity, callback) {
+      self.dbservice.findOne({ _id : id }, function (err, entity) {
+          if (err) callback(err);
+          entity = newEntity;
+          self.dbservice.update({ _id : id }, entity, {}, function (err, numReplaced) {
+            callback(err, numReplaced);
+          });
+       });
+    };
+
+    constr.prototype.deleteEntity = function (id, callback) {
+      self.dbservice.delete({ _id : id }, {}, function (err, numRemoved) {
+        callback(err, numRemoved);
+      });
+    };
+
+    constr.prototype.getAllEntities = function (callback) {
+      self.dbservice.find({}, function (err, entities) {
+        callback(err, entities);
+      });
+    };
+
+    constr.prototype.createEntity = function (newEntity, callback) {
+      self.dbservice.insert(newEntity, function (err, entity) {
+        if (err) callback(err);
+        callback(err, entity);
       });
     };
 
@@ -579,16 +816,20 @@ var DbService = (function () {
 })();
 
 // DB Abstraction objects
-var reviewDbService = new DbService(dbReviews);
-var userDbService   = new DbService(dbUsers);
+var reviewDbService   = new DbService(dbReviews);
+var userDbService     = new DbService(dbUsers);
+var commentDbService  = new DbService(dbComments);
 
 // DAO objects
-var reviewDAO = new ReviewDAO(reviewDbService);
-var userDAO   = new UserDAO(userDbService);
+var reviewDAO   = new ReviewDAO(reviewDbService);
+var userDAO     = new UserDAO(userDbService);
+var CommentDAO  = new CommentDAO(commentDbService);
 
 // REST Service objects
 var reviewRestService   = new ReviewRESTService(reviewDAO, userDAO);
-var expansionMiddleware = new helpers.ExpansionMiddleware(reviewDAO, userDAO);
+var userRestService     = new UserRESTService(reviewDAO, userDAO);
+var commentRestService  = new CommentRESTService(reviewDAO, userDAO, commentDAO);
+var mid                 = new helpers.ExpansionMiddleware(reviewDAO, userDAO);
 
 router.get('/', function(req, res) {
    res.json({ message: 'Welcome to the Review Monkey API!' });
@@ -599,39 +840,36 @@ router.route('/reviews')
     .get(reviewRestService.getAllReviews());
 
 router.route('/reviews/:review_id')
-    .get(reviewRestService.getReview(), expansionMiddleware.EXPAND_REVIEW)
+    .get(reviewRestService.getReview(), mid.EXPAND_REVIEWS)
     .put(reviewRestService.updateReview())
     .delete(reviewRestService.deleteReview());
 
 router.route('/comments')
-    .post(CommentService.createComment())
-    .get(CommentService.getAllComments());
+    .post(commentRestService.createComment())
+    .get(commentRestService.getAllComments());
 
 router.route('/comments/:comment_id')
-    .get(CommentService.getComment())
-    .put(CommentService.updateComment())
-    .delete(CommentService.deleteComment());
+    .get(commentRestService.getComment(), mid.EXPAND_COMMENTS)
+    .put(commentRestService.updateComment())
+    .delete(commentRestService.deleteComment());
 
 router.route('/users')
-    .post(UserService.createUser())
-    .get(UserService.getAllUsers());
+    .post(userRestService.createUser())
+    .get(userRestService.getAllUsers());
 
 router.route('/users/:user_id')
-    .get(UserService.getUser())
-    .put(UserService.updateUser())
-    .delete(UserService.deleteUser());
+    .get(userRestService.getUser())
+    .put(userRestService.updateUser())
+    .delete(userRestService.deleteUser());
 
-// REGISTER OUR ROUTES -------------------------------
+// REGISTER THE ROUTE -------------------------------
 // all of our routes will be prefixed with /api/<version>/
 app.use('/api/v1', router);
-
-//app.set('views', __dirname + '/web3');
-//app.engine('html', require('ejs').renderFile);
 
 app.set("view options", {layout: false});
 app.use(express.static(__dirname + '/web'));
 
-// requests will never reach this route
+// render the index file when requesting on the top level
 app.get('/', function (req, res) {
   res.render('index');
 })
