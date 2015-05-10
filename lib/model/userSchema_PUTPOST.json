@@ -1,0 +1,22 @@
+{
+  "id": "/User",
+  "type": "object",
+  "properties": {
+    "firstname": {"type": "string","minLength":1},
+    "lastname": {"type": "string","minLength":1},
+    "archived": {"type": "boolean"},
+    "password": {"type": "string"},
+    "email": {
+      "format": "email",
+      "type": "string"
+    },
+    "avatarImage": {
+      "description": "Base64 encoded avatar image",
+      "contentEncoding": "base64",
+      "mediaType": "image/png",
+      "minLength":1
+    }
+  },
+  "additionalProperties": false,
+  "required": ["firstname", "lastname", "email", "password"]
+}

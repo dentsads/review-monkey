@@ -2,24 +2,15 @@
   "id": "/Comment",
   "type": "object",
   "properties": {
-    "author": {"$ref": "#/definitions/idReferences"},
     "text": {"type": "string","minLength":1},
     "review": {"$ref": "#/definitions/idReferences"},
     "parentComment": {"$ref": "#/definitions/idReferences"},
-    "modificationDate":"2015-05-05-T050302",
-    "creationDate":"2015-05-05-T050302",
-    "replies": {
-      "type": "array",
-      "minItems": 0,
-      "items": { "$ref": "#/definitions/idReferences" },
-      "uniqueItems": true
-    },
     "nature": {
       "enum": [ "inline", "global"]
     }
   },
   "additionalProperties": false,
-  "required": ["author", "text", "nature", "review"],
+  "required": ["text", "nature", "review"],
 
   "definitions": {
      "idReferences": {

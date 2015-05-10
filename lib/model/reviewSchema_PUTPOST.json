@@ -1,0 +1,78 @@
+{
+  "id": "/Review",
+  "type": "object",
+  "properties": {
+    "author": {"$ref": "#/definitions/idReferences"},
+    "reviewers": {
+      "type": "array",
+      "minItems": 0,
+      "items": { "$ref": "#/definitions/idReferences" },
+      "uniqueItems": true
+    },
+    "subscribers": {
+      "type": "array",
+      "minItems": 0,
+      "items": { "$ref": "#/definitions/idReferences" },
+      "uniqueItems": true
+    },
+    "changes": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/changeReferences" },
+      "uniqueItems": true
+    },
+    "description": {
+      "type": "string",
+      "minLength":1
+    },
+    "repository": {
+      "format": "uri",
+      "type": "string"
+    },
+    "priority": {
+      "enum": [ "low", "medium", "high" ]
+    }
+  },
+  "additionalProperties": false,
+  "required": ["author", "description", "changes"],
+
+  "definitions": {
+     "idReferences": {
+        "type": "object",
+        "properties": {
+          "refId": {
+            "format": "uri",
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": ["refId"]
+      },
+      "reviewerReferences": {
+         "type": "object",
+         "properties": {
+           "reviewStatus": {
+             "enum": [ "open", "rejected", "accepted" ]
+           },
+           "refId": {
+             "format": "uri",
+             "type": "string"
+           }
+         },
+         "additionalProperties": false,
+         "required": ["refId", "reviewStatus"]
+       },
+      "changeReferences": {
+         "type": "object",
+         "properties": {
+           "udiff": {
+            "description": "Base64 UTF-8 encoded unified diff string",
+            "type": "string",
+            "pattern": "^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)$"
+          }
+         },
+         "additionalProperties": false,
+         "required": ["udiff"]
+       }
+  }
+}

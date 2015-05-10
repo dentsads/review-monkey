@@ -52,9 +52,7 @@ var ReviewRESTService = (function () {
     };
 
     constr.prototype.updateReview = function () {
-      return function(req, res) {
-        if (!ReviewValidator.isValidReviewRequest(req, res)) return;
-
+      return function(req, res, next) {
         var currentDatetime = new Date().toString();
         req.body.modificationDate = currentDatetime;
 
@@ -90,9 +88,7 @@ var ReviewRESTService = (function () {
     };
 
     constr.prototype.createReview = function () {
-      return function(req, res) {
-        if (!ReviewValidator.isValidReviewRequest(req, res)) return;
-
+      return function(req, res, next) {
         var currentDatetime = new Date().toString();
         req.body.creationDate = currentDatetime;
         req.body.modificationDate = currentDatetime;
@@ -135,9 +131,7 @@ var UserRESTService = (function () {
     };
 
     constr.prototype.updateUser = function () {
-      return function(req, res) {
-        if (!UserValidator.isValidUserRequest(req, res)) return;
-
+      return function(req, res, next) {
         var currentDatetime = new Date().toString();
         req.body.modificationDate = currentDatetime;
 
@@ -167,9 +161,7 @@ var UserRESTService = (function () {
     };
 
     constr.prototype.createUser = function () {
-      return function(req, res) {
-        if (!UserValidator.isValidUserRequest(req, res)) return;
-
+      return function(req, res, next) {
         var currentDatetime = new Date().toString();
         req.body.creationDate = currentDatetime;
         req.body.modificationDate = currentDatetime;
@@ -253,6 +245,10 @@ var CommentRESTService = (function () {
         var currentDatetime = new Date().toString();
         req.body.creationDate = currentDatetime;
         req.body.modificationDate = currentDatetime;
+
+        console.log(req.body.parentComment);
+        if (!req.body.parentComment)
+          req.body.nature = "";
 
         self.commentDAO.createComment(req.body, function (err, comment) {
           if (err) res.send(err);
@@ -467,7 +463,7 @@ var commentDAO  = new CommentDAO(commentDbService);
 var reviewRestService   = new ReviewRESTService(reviewDAO, userDAO);
 var userRestService     = new UserRESTService(reviewDAO, userDAO);
 var commentRestService  = new CommentRESTService(reviewDAO, userDAO, commentDAO);
-var mid                 = new helpers.ExpansionMiddleware(reviewDAO, userDAO, commentDAO);
+var exp                 = new helpers.ExpansionMiddleware(reviewDAO, userDAO, commentDAO);
 var val                 = new helpers.ValidationMiddleware(reviewDAO, userDAO, commentDAO);
 
 router.get('/', function(req, res) {
@@ -475,30 +471,30 @@ router.get('/', function(req, res) {
 });
 
 router.route('/reviews')
-    .post(reviewRestService.createReview())
-    .get(reviewRestService.getAllReviews(), mid.EXPAND_REVIEWS);
+    .post(val.VALIDATE_REVIEW, reviewRestService.createReview())
+    .get(reviewRestService.getAllReviews(), exp.EXPAND_REVIEWS);
 
 router.route('/reviews/:review_id')
-    .get(reviewRestService.getReview(), mid.EXPAND_REVIEW)
-    .put(reviewRestService.updateReview())
+    .get(reviewRestService.getReview(), exp.EXPAND_REVIEW)
+    .put(val.VALIDATE_REVIEW, reviewRestService.updateReview())
     .delete(reviewRestService.deleteReview());
 
 router.route('/comments')
     .post(val.VALIDATE_COMMENT, commentRestService.createComment())
-    .get(commentRestService.getAllComments(), mid.EXPAND_COMMENTS);
+    .get(commentRestService.getAllComments(), exp.EXPAND_COMMENTS);
 
 router.route('/comments/:comment_id')
-    .get(commentRestService.getComment(), mid.EXPAND_COMMENT)
+    .get(commentRestService.getComment(), exp.EXPAND_COMMENT)
     .put(val.VALIDATE_COMMENT, commentRestService.updateComment())
     .delete(commentRestService.deleteComment());
 
 router.route('/users')
-    .post(userRestService.createUser())
+    .post(val.VALIDATE_USER, userRestService.createUser())
     .get(userRestService.getAllUsers());
 
 router.route('/users/:user_id')
     .get(userRestService.getUser())
-    .put(userRestService.updateUser())
+    .put(val.VALIDATE_USER, userRestService.updateUser())
     .delete(userRestService.deleteUser());
 
 // REGISTER THE ROUTE -------------------------------

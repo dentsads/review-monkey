@@ -1,0 +1,18 @@
+{
+  "id": "/User",
+  "type": "object",
+  "properties": {
+    "id": {"type": "string","minLength":1},
+    "firstname": {"type": "string","minLength":1},
+    "lastname": {"type": "string","minLength":1},
+    "archived": {"type": "boolean"},
+    "modificationDate":"2015-05-05-T050302",
+    "creationDate":"2015-05-05-T050302",
+    "email": {
+      "format": "email",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "required": ["id", "firstname", "lastname", "archived", "email"]
+}
