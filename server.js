@@ -7,7 +7,7 @@ var async       = require("async");
 var fs          = require("fs");
 var helpers     = require('./lib/helpers');
 
-var app       = express();
+var app           = express();
 
 // configure app to use bodyParser()
 // this will let us get the data from a POST
@@ -89,9 +89,13 @@ var ReviewRESTService = (function () {
 
     constr.prototype.createReview = function () {
       return function(req, res, next) {
+
         var currentDatetime = new Date().toString();
         req.body.creationDate = currentDatetime;
         req.body.modificationDate = currentDatetime;
+
+        if (req.body.priority === undefined)
+          req.body.priority = "low";
 
         self.reviewDAO.createReview(req.body, function (err, review) {
           if (err) res.send(err);
@@ -162,9 +166,12 @@ var UserRESTService = (function () {
 
     constr.prototype.createUser = function () {
       return function(req, res, next) {
+
         var currentDatetime = new Date().toString();
         req.body.creationDate = currentDatetime;
         req.body.modificationDate = currentDatetime;
+
+        req.body.archived = false;
 
         self.userDAO.createUser(req.body, function (err, user) {
           if (err) res.send(err);
@@ -466,6 +473,10 @@ var commentRestService  = new CommentRESTService(reviewDAO, userDAO, commentDAO)
 var exp                 = new helpers.ExpansionMiddleware(reviewDAO, userDAO, commentDAO);
 var val                 = new helpers.ValidationMiddleware(reviewDAO, userDAO, commentDAO);
 
+// Passport Authenticator
+var authenticator = new helpers.Authenticator(userDbService);
+var passport = authenticator.passport();
+
 router.get('/', function(req, res) {
    res.json({ message: 'Welcome to the Review Monkey API!' });
 });
@@ -497,9 +508,18 @@ router.route('/users/:user_id')
     .put(val.VALIDATE_USER, userRestService.updateUser())
     .delete(userRestService.deleteUser());
 
+
+//app.use(express.session({ secret: 'keyboard cat' }));
+app.use(passport.initialize());
+//app.use(passport.session());
+
+app.all('/',  passport.authenticate('local', { successRedirect: '/',
+                                   failureRedirect: '/pages/examples/login.html' }));
+
 // REGISTER THE ROUTE -------------------------------
 // all of our routes will be prefixed with /api/<version>/
 app.use('/api/v1', router);
+
 
 app.set("view options", {layout: false});
 app.use(express.static(__dirname + '/web'));

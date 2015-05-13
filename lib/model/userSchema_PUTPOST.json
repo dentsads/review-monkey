@@ -4,7 +4,7 @@
   "properties": {
     "firstname": {"type": "string","minLength":1},
     "lastname": {"type": "string","minLength":1},
-    "archived": {"type": "boolean"},
+    "username": {"type": "string","minLength":1},
     "password": {"type": "string"},
     "email": {
       "format": "email",
@@ -18,5 +18,5 @@
     }
   },
   "additionalProperties": false,
-  "required": ["firstname", "lastname", "email", "password"]
+  "required": ["firstname", "lastname", "email", "username", "password"]
 }

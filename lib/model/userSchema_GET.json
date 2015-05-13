@@ -3,6 +3,7 @@
   "type": "object",
   "properties": {
     "id": {"type": "string","minLength":1},
+    "username": {"type": "string","minLength":1},
     "firstname": {"type": "string","minLength":1},
     "lastname": {"type": "string","minLength":1},
     "archived": {"type": "boolean"},
@@ -14,5 +15,5 @@
     }
   },
   "additionalProperties": false,
-  "required": ["id", "firstname", "lastname", "archived", "email"]
+  "required": ["id", "username", "firstname", "lastname", "archived", "email"]
 }
