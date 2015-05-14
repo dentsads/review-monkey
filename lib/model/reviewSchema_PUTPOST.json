@@ -2,7 +2,6 @@
   "id": "/Review",
   "type": "object",
   "properties": {
-    "author": {"$ref": "#/definitions/idReferences"},
     "reviewers": {
       "type": "array",
       "minItems": 0,
@@ -34,7 +33,7 @@
     }
   },
   "additionalProperties": false,
-  "required": ["author", "description", "changes"],
+  "required": ["description", "changes"],
 
   "definitions": {
      "idReferences": {

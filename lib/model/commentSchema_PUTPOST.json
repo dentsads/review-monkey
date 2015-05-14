@@ -1,27 +1,52 @@
 {
   "id": "/Comment",
   "type": "object",
-  "properties": {
-    "text": {"type": "string","minLength":1},
-    "review": {"$ref": "#/definitions/idReferences"},
-    "parentComment": {"$ref": "#/definitions/idReferences"},
-    "nature": {
-      "enum": [ "inline", "global"]
+  "oneOf": [
+    {
+      "properties": {
+        "text": {"type": "string","minLength":1},
+        "review": {"$ref": "#/definitions/idReferences"},
+        "change": {"$ref": "#/definitions/changeReferences"}
+      },
+      "additionalProperties": false,
+      "required": ["text", "review"]
+    },
+    {
+      "properties": {
+        "text": {"type": "string","minLength":1},
+        "review": {"$ref": "#/definitions/idReferences"},
+        "parentComment": {"$ref": "#/definitions/idReferences"}
+      },
+      "additionalProperties": false,
+      "required": ["text", "review"]
     }
-  },
-  "additionalProperties": false,
-  "required": ["text", "nature", "review"],
-
+  ],
   "definitions": {
      "idReferences": {
         "type": "object",
         "properties": {
           "refId": {
+            "format": "uri",
             "type": "string"
           }
         },
         "additionalProperties": false,
         "required": ["refId"]
-      }
+      },
+      "changeReferences": {
+         "type": "object",
+         "properties": {
+           "line": {
+             "type": "integer",
+             "minimum": 1
+           },
+           "refId": {
+             "type": "string",
+             "minLength":1
+           }
+         },
+         "additionalProperties": false,
+         "required": ["refId", "line"]
+       }
   }
 }

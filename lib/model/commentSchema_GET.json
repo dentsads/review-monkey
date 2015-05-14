@@ -26,6 +26,7 @@
         "type": "object",
         "properties": {
           "refId": {
+            "format": "uri",
             "type": "string"
           }
         },

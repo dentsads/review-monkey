@@ -97,6 +97,11 @@ var ReviewRESTService = (function () {
         if (req.body.priority === undefined)
           req.body.priority = "low";
 
+        for (var i = 0 ; i < req.body.changes.length; i++) {
+          var change = req.body.changes[i];
+          change.lineCount = (new helpers.Utils()).getUdiffLineCount(change.udiff);
+        }
+
         self.reviewDAO.createReview(req.body, function (err, review) {
           if (err) res.send(err);
           res.json({ message: 'Review successfully created!', 'review': JSON.stringify(review) });
@@ -253,9 +258,8 @@ var CommentRESTService = (function () {
         req.body.creationDate = currentDatetime;
         req.body.modificationDate = currentDatetime;
 
-        console.log(req.body.parentComment);
-        if (!req.body.parentComment)
-          req.body.nature = "";
+        //if (!req.body.parentComment)
+        //  req.body.nature = "";
 
         self.commentDAO.createComment(req.body, function (err, comment) {
           if (err) res.send(err);
@@ -467,7 +471,7 @@ var userDAO     = new UserDAO(userDbService);
 var commentDAO  = new CommentDAO(commentDbService);
 
 // REST Service objects
-var reviewRestService   = new ReviewRESTService(reviewDAO, userDAO);
+var reviewRestService   = new ReviewRESTService(reviewDAO, userDAO, helpers.Utils);
 var userRestService     = new UserRESTService(reviewDAO, userDAO);
 var commentRestService  = new CommentRESTService(reviewDAO, userDAO, commentDAO);
 var exp                 = new helpers.ExpansionMiddleware(reviewDAO, userDAO, commentDAO);
@@ -513,8 +517,8 @@ router.route('/users/:user_id')
 app.use(passport.initialize());
 //app.use(passport.session());
 
-app.all('/',  passport.authenticate('local', { successRedirect: '/',
-                                   failureRedirect: '/pages/examples/login.html' }));
+//app.all('/',  passport.authenticate('local', { successRedirect: '/',
+//                                   failureRedirect: '/pages/examples/login.html' }));
 
 // REGISTER THE ROUTE -------------------------------
 // all of our routes will be prefixed with /api/<version>/
