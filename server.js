@@ -1,11 +1,14 @@
 // Required dependencies
-var Datastore   = require('nedb');
-var express     = require('express');
-var bodyParser  = require('body-parser');
-var http        = require('http');
-var async       = require("async");
-var fs          = require("fs");
-var helpers     = require('./lib/helpers');
+var Datastore     = require('nedb');
+var express       = require('express');
+var bodyParser    = require('body-parser');
+var session       = require('express-session')
+var cookieParser  = require('cookie-parser')
+var http          = require('http');
+var async         = require("async");
+var fs            = require("fs");
+var uuid          = require('node-uuid');
+var helpers       = require('./lib/helpers');
 
 var app           = express();
 
@@ -30,6 +33,7 @@ var ReviewRESTService = (function () {
     var constr = function (reviewDAO, userDAO) {
       this.reviewDAO = reviewDAO;
       this.userDAO = userDAO;
+      this.utils = new helpers.Utils();
       self = this;
     };
 
@@ -94,12 +98,18 @@ var ReviewRESTService = (function () {
         req.body.creationDate = currentDatetime;
         req.body.modificationDate = currentDatetime;
 
+        // Set default prority to 'low' if non is given
         if (req.body.priority === undefined)
           req.body.priority = "low";
 
+        req.body.author = req.session.passport.user;
+
         for (var i = 0 ; i < req.body.changes.length; i++) {
           var change = req.body.changes[i];
-          change.lineCount = (new helpers.Utils()).getUdiffLineCount(change.udiff);
+          // Calculate line count for every udiff change
+          change.lineCount = self.utils.getUdiffLineCount(change.udiff);
+          // Generate random RFC4122 v6 UUIDs for every change
+          change.id = uuid.v4();
         }
 
         self.reviewDAO.createReview(req.body, function (err, review) {
@@ -258,8 +268,7 @@ var CommentRESTService = (function () {
         req.body.creationDate = currentDatetime;
         req.body.modificationDate = currentDatetime;
 
-        //if (!req.body.parentComment)
-        //  req.body.nature = "";
+        req.body.author = req.session.passport.user;
 
         self.commentDAO.createComment(req.body, function (err, comment) {
           if (err) res.send(err);
@@ -513,25 +522,55 @@ router.route('/users/:user_id')
     .delete(userRestService.deleteUser());
 
 
-//app.use(express.session({ secret: 'keyboard cat' }));
+app.use(express.static('public'));
+app.use(cookieParser());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+app.use(session({
+  secret: 'keyboard cat',
+  resave: false,
+  saveUninitialized: false
+}));
 app.use(passport.initialize());
-//app.use(passport.session());
+app.use(passport.session());
 
-//app.all('/',  passport.authenticate('local', { successRedirect: '/',
-//                                   failureRedirect: '/pages/examples/login.html' }));
+var auth = passport.authenticate('local', {
+                                  failureRedirect: '/web/pages/examples/login.html'});
+
+var securityRedirect = function (req, res, next){
+  //if (req.session.passport.user === undefined) {
+  if (!req.isAuthenticated() && req.path !== '/web/pages/examples/login.html') {
+    req.session.redirectUrl = req.baseUrl + req.path;
+    res.redirect('/web/pages/examples/login.html');
+  } else {
+    next();
+  }
+}
+
+app.post('/web/pages/examples/login.html', auth, function (req, res){
+  var redirectUrl = req.session.redirectUrl ? req.session.redirectUrl : '/';
+  delete req.session.redirectUrl;
+
+  res.redirect(redirectUrl);
+});
 
 // REGISTER THE ROUTE -------------------------------
 // all of our routes will be prefixed with /api/<version>/
-app.use('/api/v1', router);
-
+app.use('/api/v1', securityRedirect, router);
 
 app.set("view options", {layout: false});
-app.use(express.static(__dirname + '/web'));
+app.get('/web', securityRedirect, function(req, res, next) {
+  next();
+});
+app.get('/', function(req, res, next) {
+  res.redirect('/web');
+});
+app.use('/web', express.static(__dirname + '/web'));
 
 // render the index file when requesting on the top level
-app.get('/', function (req, res) {
-  res.render('index');
-})
+//app.get('/', securityRedirect, function (req, res) {
+//  res.render('index');
+//})
 
 var server = app.listen(3000, function () {
 

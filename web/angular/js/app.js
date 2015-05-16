@@ -5,18 +5,18 @@ var reviewsApp = angular.module('reviewsApp', ['ngRoute',
     function($routeProvider) {
       $routeProvider.
         when('/', {
-          templateUrl: '../pages/reviews/partials/main.html',
+          templateUrl: '../web/pages/reviews/partials/main.html',
           controller: 'ReviewListCtrl'
         }).
         when('/queries/all', {
-          templateUrl: '../pages/reviews/partials/all.html',
+          templateUrl: '../web/pages/reviews/partials/all.html',
           controller: 'ReviewListCtrl'
         }).
         when('/reviews/:review_id', {
-          templateUrl: '../pages/reviews/partials/review.html',
+          templateUrl: '../web/pages/reviews/partials/review.html',
           controller: 'ReviewDetailCtrl'
         }).
         otherwise({
-          redirectTo: '/'
+          redirectTo: '/web'
         });
     }]);
