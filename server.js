@@ -102,7 +102,8 @@ var ReviewRESTService = (function () {
         if (req.body.priority === undefined)
           req.body.priority = "low";
 
-        req.body.author = req.session.passport.user;
+        req.body.author = {};
+        req.body.author.refId  = req.session.passport.user;
 
         for (var i = 0 ; i < req.body.changes.length; i++) {
           var change = req.body.changes[i];
@@ -139,9 +140,13 @@ var UserRESTService = (function () {
           if (err) res.send(err);
 
           if (req.query.expand != "true") {
-            res.json(user);
+            var obfuscatedUser = user;
+            delete obfuscatedUser[0].password;
+            res.json(obfuscatedUser);
           } else {
-            req.user = user[0];
+            var obfuscatedUser = user[0];
+            delete obfuscatedUser.password;
+            req.user = obfuscatedUser;
             next();
           }
 
@@ -268,7 +273,8 @@ var CommentRESTService = (function () {
         req.body.creationDate = currentDatetime;
         req.body.modificationDate = currentDatetime;
 
-        req.body.author = req.session.passport.user;
+        req.body.author = {};
+        req.body.author.refId = req.session.passport.user;
 
         self.commentDAO.createComment(req.body, function (err, comment) {
           if (err) res.send(err);
