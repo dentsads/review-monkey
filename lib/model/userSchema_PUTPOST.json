@@ -2,10 +2,10 @@
   "id": "/User",
   "type": "object",
   "properties": {
-    "firstname": {"type": "string","minLength":1},
-    "lastname": {"type": "string","minLength":1},
-    "username": {"type": "string","minLength":1},
-    "password": {"type": "string"},
+    "firstname": {"type": "string", "minLength":1, "maxLength":40},
+    "lastname": {"type": "string", "minLength":1, "maxLength":40},
+    "username": {"type": "string", "minLength":1, "maxLength":40},
+    "password": {"type": "string", "minLength":1, "maxLength":50},
     "email": {
       "format": "email",
       "type": "string"

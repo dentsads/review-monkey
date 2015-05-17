@@ -9,8 +9,14 @@ reviewsApp.controller('ReviewListCtrl', function ($scope, $http) {
 
 });
 
-reviewsApp.controller('ReviewDetailCtrl', function ($scope, $http, $routeParams) {
+reviewsApp.controller('ReviewDetailCtrl', function ($scope, $http, $location, $routeParams) {
   $http.get(apiBasePath + "/reviews/" + $routeParams.review_id).success(function(data) {
+    if (0 === data.length) {
+      console.log("data is empty");
+      window.location.href = '/web/pages/examples/404.html';
+      return;
+    }
+
     var review = data[0];
     $scope.reviewDetail = review;
 

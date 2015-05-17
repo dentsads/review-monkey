@@ -1,26 +1,14 @@
 {
   "id": "/Comment",
   "type": "object",
-  "oneOf": [
-    {
-      "properties": {
-        "text": {"type": "string","minLength":1},
-        "review": {"$ref": "#/definitions/idReferences"},
-        "change": {"$ref": "#/definitions/changeReferences"}
-      },
-      "additionalProperties": false,
-      "required": ["text", "review"]
-    },
-    {
-      "properties": {
-        "text": {"type": "string","minLength":1},
-        "review": {"$ref": "#/definitions/idReferences"},
-        "parentComment": {"$ref": "#/definitions/idReferences"}
-      },
-      "additionalProperties": false,
-      "required": ["text", "review"]
-    }
-  ],
+  "properties": {
+    "text": {"type": "string","minLength":1},
+    "review": {"$ref": "#/definitions/idReferences"},
+    "change": {"$ref": "#/definitions/changeReferences"},
+    "parentComment": {"$ref": "#/definitions/idReferences"}
+  },
+  "additionalProperties": false,
+  "required": ["text", "review"],
   "definitions": {
      "idReferences": {
         "type": "object",

@@ -113,6 +113,12 @@ var ReviewRESTService = (function () {
           change.id = uuid.v4();
         }
 
+        for (var i = 0 ; i < req.body.reviewers.length; i++) {
+          var reviewer = req.body.reviewer[i];
+          // Default review status is 'open'
+          reviewer.reviewStatus = "open";
+        }
+
         self.reviewDAO.createReview(req.body, function (err, review) {
           if (err) res.send(err);
           res.json({ message: 'Review successfully created!', 'review': JSON.stringify(review) });
@@ -278,9 +284,40 @@ var CommentRESTService = (function () {
 
         self.commentDAO.createComment(req.body, function (err, comment) {
           if (err) res.send(err);
+
+          _updateCommentReferencesInReview(comment);
+
           res.json({ message: 'Comment successfully created!', 'review': JSON.stringify(comment) });
         });
       };
+    };
+
+    var _updateCommentReferencesInReview = function (comment) {
+      var reviewRefId = comment.review.refId.substring(comment.review.refId.lastIndexOf('/')+1);
+
+      if (comment.change === undefined) {
+        self.reviewDAO.updateReview(reviewRefId, { $push: { globalComments: {"refId": comment._id} } }, function (err, numReplaced) {
+        });
+      } else if (comment.change != undefined) {
+
+        self.reviewDAO.getReview(reviewRefId, function (err, fetchedReview) {
+          for(var i = 0 ; i < fetchedReview[0].changes.length; i++){
+            var change = fetchedReview[0].changes[i];
+
+            if (change.id === comment.change.refId) {
+              if (change.comments === undefined)
+                change.comments = [];
+
+              change.comments.push({"refId": comment._id});
+            }
+          }
+
+          self.reviewDAO.updateReview(reviewRefId, fetchedReview[0], function (err, numReplaced) {
+          });
+        });
+
+      }
+
     };
 
     return constr;
@@ -297,23 +334,19 @@ var ReviewDAO = (function () {
     constr.prototype.constructor = constr;
 
     constr.prototype.getReview= function (id, callback) {
-      self.dbservice.find({ _id : id}, function(err, user) {
-        callback(err, user);
+      self.dbservice.find({ _id : id}, function(err, review) {
+        callback(err, review);
       });
     };
 
     constr.prototype.updateReview = function (id, newReview, callback) {
-      self.dbservice.findOne({ _id : id }, function (err, review) {
-          if (err) callback(err);
-          review = newReview;
-          self.dbservice.update({ _id : id }, review, {}, function (err, numReplaced) {
-            callback(err, numReplaced);
-          });
-       });
+      self.dbservice.update({ _id : id }, newReview, function (err, numReplaced) {
+        callback(err, numReplaced);
+      });
     };
 
     constr.prototype.deleteReview = function (id, callback) {
-      self.dbservice.delete({ _id : id }, {}, function (err, numRemoved) {
+      self.dbservice.delete({ _id : id }, function (err, numRemoved) {
         callback(err, numRemoved);
       });
     };
@@ -350,17 +383,13 @@ var UserDAO = (function () {
     };
 
     constr.prototype.updateUser = function (id, newUser, callback) {
-      self.dbservice.findOne({ _id : id }, function (err, user) {
-          if (err) callback(err);
-          user = newUser;
-          self.dbservice.update({ _id : id }, user, {}, function (err, numReplaced) {
-            callback(err, numReplaced);
-          });
-       });
+      self.dbservice.update({ _id : id }, newUser, function (err, numReplaced) {
+        callback(err, numReplaced);
+      });
     };
 
     constr.prototype.deleteUser = function (id, callback) {
-      self.dbservice.delete({ _id : id }, {}, function (err, numRemoved) {
+      self.dbservice.delete({ _id : id }, function (err, numRemoved) {
         callback(err, numRemoved);
       });
     };
@@ -401,17 +430,13 @@ var CommentDAO = (function () {
     };
 
     constr.prototype.updateComment = function (id, newComment, callback) {
-      self.dbservice.findOne({ _id : id }, function (err, comment) {
-          if (err) callback(err);
-          comment = newComment;
-          self.dbservice.update({ _id : id }, comment, {}, function (err, numReplaced) {
-            callback(err, numReplaced);
-          });
-       });
+      self.dbservice.update({ _id : id }, newComment, function (err, numReplaced) {
+        callback(err, numReplaced);
+      });
     };
 
     constr.prototype.deleteComment = function (id, callback) {
-      self.dbservice.delete({ _id : id }, {}, function (err, numRemoved) {
+      self.dbservice.delete({ _id : id }, function (err, numRemoved) {
         callback(err, numRemoved);
       });
     };
@@ -530,8 +555,6 @@ router.route('/users/:user_id')
 
 app.use(express.static('public'));
 app.use(cookieParser());
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
 app.use(session({
   secret: 'keyboard cat',
   resave: false,
@@ -544,9 +567,8 @@ var auth = passport.authenticate('local', {
                                   failureRedirect: '/web/pages/examples/login.html'});
 
 var securityRedirect = function (req, res, next){
-  //if (req.session.passport.user === undefined) {
   if (!req.isAuthenticated() && req.path !== '/web/pages/examples/login.html') {
-    req.session.redirectUrl = req.baseUrl + req.path;
+    req.session.redirectUrl = req.originalUrl;
     res.redirect('/web/pages/examples/login.html');
   } else {
     next();
@@ -562,21 +584,19 @@ app.post('/web/pages/examples/login.html', auth, function (req, res){
 
 // REGISTER THE ROUTE -------------------------------
 // all of our routes will be prefixed with /api/<version>/
-app.use('/api/v1', securityRedirect, router);
+//app.use('/api/v1', securityRedirect, router);
+app.use('/api/v1', router);
 
 app.set("view options", {layout: false});
-app.get('/web', securityRedirect, function(req, res, next) {
-  next();
-});
+
+//app.get('/web', securityRedirect, function(req, res, next) {
+//  next();
+//});
+
 app.get('/', function(req, res, next) {
   res.redirect('/web');
 });
 app.use('/web', express.static(__dirname + '/web'));
-
-// render the index file when requesting on the top level
-//app.get('/', securityRedirect, function (req, res) {
-//  res.render('index');
-//})
 
 var server = app.listen(3000, function () {
 

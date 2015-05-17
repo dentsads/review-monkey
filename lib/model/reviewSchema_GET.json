@@ -89,27 +89,12 @@
            "comments": {
              "type": "array",
              "minItems": 0,
-             "items": { "$ref": "#/definitions/commentReferences" },
+             "items": { "$ref": "#/definitions/idReferences" },
              "uniqueItems": true
            }
          },
          "additionalProperties": false,
          "required": ["udiff", "id"]
-       },
-       "commentReferences": {
-          "type": "object",
-          "properties": {
-            "line": {
-              "type": "integer",
-              "minimum": 1
-            },
-            "refId": {
-              "format": "uri",
-              "type": "string"
-            }
-          },
-          "additionalProperties": false,
-          "required": ["refId", "line"]
-        }
+       }
   }
 }
