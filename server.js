@@ -584,14 +584,14 @@ app.post('/web/pages/examples/login.html', auth, function (req, res){
 
 // REGISTER THE ROUTE -------------------------------
 // all of our routes will be prefixed with /api/<version>/
-//app.use('/api/v1', securityRedirect, router);
-app.use('/api/v1', router);
+app.use('/api/v1', securityRedirect, router);
+//app.use('/api/v1', router);
 
 app.set("view options", {layout: false});
 
-//app.get('/web', securityRedirect, function(req, res, next) {
-//  next();
-//});
+app.get('/web', securityRedirect, function(req, res, next) {
+  next();
+});
 
 app.get('/', function(req, res, next) {
   res.redirect('/web');
