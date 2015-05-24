@@ -525,6 +525,12 @@ router.get('/', function(req, res) {
    res.json({ message: 'Welcome to the Review Monkey API!' });
 });
 
+router.get('/identity', function(req, res) {
+  var user = req.user;
+  delete user.password;
+  res.json(user);
+});
+
 router.route('/reviews')
     .post(val.VALIDATE_REVIEW, reviewRestService.createReview())
     .get(reviewRestService.getAllReviews(), exp.EXPAND_REVIEWS);
@@ -551,7 +557,6 @@ router.route('/users/:user_id')
     .get(userRestService.getUser())
     .put(val.VALIDATE_USER, userRestService.updateUser())
     .delete(userRestService.deleteUser());
-
 
 app.use(express.static('public'));
 app.use(cookieParser());
@@ -591,6 +596,11 @@ app.set("view options", {layout: false});
 
 app.get('/web', securityRedirect, function(req, res, next) {
   next();
+});
+
+app.get('/logout', function(req, res){
+  req.logout();
+  res.redirect('/');
 });
 
 app.get('/', function(req, res, next) {

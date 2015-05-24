@@ -2,11 +2,12 @@ var apiBasePath = "../../api/v1";
 var reviewsApp = angular.module('reviewsControllers', []);
 
 reviewsApp.controller('ReviewListCtrl', function ($scope, $http) {
-  $http.get(apiBasePath + "/reviews?expand=true").success(function(data) {
+  $http.get(apiBasePath + "/reviews?expand=true").success(function(data, status, headers) {
     $scope.reviews = data;
     $scope.reviewsLength = data.length;
   });
 
+  $scope.getReviewStatusClass = ReviewInterfaceClient.getReviewStatusClass;
 });
 
 reviewsApp.controller('ReviewDetailCtrl', function ($scope, $http, $location, $routeParams) {
@@ -29,6 +30,14 @@ reviewsApp.controller('ReviewDetailCtrl', function ($scope, $http, $location, $r
 
   $scope.id = $routeParams.review_id;
   $scope.getReviewStatusClass = ReviewInterfaceClient.getReviewStatusClass;
+
+});
+
+reviewsApp.controller('UserCtrl', function ($scope, $http) {
+  $http.get(apiBasePath + "/identity").success(function(data) {
+    $scope.getAvatarPicture = ReviewInterfaceClient.getAvatarPicture;
+    $scope.author = data;
+  });
 
 });
 
@@ -59,6 +68,12 @@ var ReviewInterfaceClient = (function () {
       if (reviewStatus == 'accepted') return "fa-check-circle text-green";
 
       return "";
+    };
+
+    constr.getAvatarPicture = function(author) {
+      if (!author.avatarPicture) return "dist/img/avatar5.png";
+
+      return "data:image/png;base64," + author.avatarPicture;
     };
 
     constr.createDiffBoxWithInlineComments = function (diffId, uDiffString, comments) {
