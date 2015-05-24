@@ -12,9 +12,9 @@
             <div class="box-body">
                   <dl class="dl-horizontal">
                     <dt>Author</dt>
-                    <dd>{{reviewDetail.author.username}}</dd>
+                    <dd>{{reviewDetail.author.firstname}}</dd>
                     <dt>Reviewers</dt>
-                    <dd ng-repeat="reviewer in reviewDetail.reviewers"><i class="fa {{getReviewStatusClass(reviewer.reviewStatus)}}"></i> {{reviewer.reviewer.username}}</dd>
+                    <dd ng-repeat="reviewer in reviewDetail.reviewers"><i class="fa {{getReviewStatusClass(reviewer.reviewStatus)}}"></i> {{reviewer.reviewer.id}}</dd>
                     <dt>Modified on</dt>
                     <dd>{{reviewDetail.modificationDate}}</dd>
                     <dt>Created on</dt>
@@ -26,7 +26,7 @@
                     <dt>Description</dt>
                     <dd>{{reviewDetail.description}}</dd>
                     <dt>Subscribers</dt>
-                    <dd ng-repeat="subscriber in reviewDetail.subscribers"> {{subscriber.subscriber.username}}</dd>
+                    <dd ng-repeat="subscriber in reviewDetail.subscribers"> {{subscriber.subscriber.id}}</dd>
                     <dt>Changes</dt>
                     <dd style="font-family: 'Courier New', Courier, monospace;font-size:small">com.bosch.rtc.server.forecast/src/com/bosch/rtc/server/forecast/impl/ForecastingService.java</dd>
                     <dd style="font-family: 'Courier New', Courier, monospace;font-size:small">com.bosch.rtc.server.forecast/src/com/bosch/rtc/server/forecast/Main.java</dd>

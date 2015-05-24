@@ -22,7 +22,7 @@
         <li ng-repeat="review in reviews">
           <i class="fa ion-checkmark-round bg-green"></i>
           <div class="timeline-item">
-            <span class="time"><i class="fa fa-clock-o"></i> {{review.creationDate}}</span>
+            <span class="time"><i class="fa fa-clock-o"></i> {{review.modificationDate}}</span>
             <h3 class="timeline-header"><a href="#/reviews/{{review._id}}">{{review._id}}</a> sent you an email</h3>
             <div class="timeline-body">
               {{review.description}}

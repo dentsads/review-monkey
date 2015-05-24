@@ -12,7 +12,6 @@ reviewsApp.controller('ReviewListCtrl', function ($scope, $http) {
 reviewsApp.controller('ReviewDetailCtrl', function ($scope, $http, $location, $routeParams) {
   $http.get(apiBasePath + "/reviews/" + $routeParams.review_id + "?expand=true").success(function(data) {
     if (0 === data.length) {
-      console.log("data is empty");
       window.location.href = '/web/pages/examples/404.html';
       return;
     }
@@ -72,7 +71,7 @@ var ReviewInterfaceClient = (function () {
       if (comments) {
         for (var i = 0; i < comments.length; i++) {
           var comment = comments[i].comment;
-          $(_createInlineCommentBoxString(i,comment.text,comment.author.refId, comment.creationDate)).insertAfter('#diff'+diffId+'-' + comment.change.line);
+          $(_createInlineCommentBoxString(comment._id,comment.text, comment.author.refId, comment.modificationDate)).insertAfter('#diff'+diffId+'-' + comment.change.line);
         }
       }
     };

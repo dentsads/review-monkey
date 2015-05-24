@@ -98,7 +98,7 @@ var ReviewRESTService = (function () {
         req.body.creationDate = currentDatetime;
         req.body.modificationDate = currentDatetime;
 
-        // Set default prority to 'low' if non is given
+        // Set default prority to 'low' if none is given
         if (req.body.priority === undefined)
           req.body.priority = "low";
 
