@@ -1,4 +1,7 @@
 var apiBasePath = "../../api/v1";
+var PAGE_NOT_FOUND_HTML = "/web/pages/examples/404.html";
+var DEFAULT_AVATAR = "dist/img/avatar5.png";
+
 var reviewsApp = angular.module('reviewsControllers', []);
 
 reviewsApp.controller('ReviewListCtrl', function ($scope, $http) {
@@ -10,10 +13,10 @@ reviewsApp.controller('ReviewListCtrl', function ($scope, $http) {
   $scope.getReviewStatusClass = ReviewInterfaceClient.getReviewStatusClass;
 });
 
-reviewsApp.controller('ReviewDetailCtrl', function ($scope, $http, $location, $routeParams) {
+reviewsApp.controller('ReviewDetailCtrl', function ($scope, $http, $location, $routeParams, $compile) {
   $http.get(apiBasePath + "/reviews/" + $routeParams.review_id + "?expand=true").success(function(data) {
     if (0 === data.length) {
-      window.location.href = '/web/pages/examples/404.html';
+      window.location.href = PAGE_NOT_FOUND_HTML;
       return;
     }
 
@@ -23,7 +26,7 @@ reviewsApp.controller('ReviewDetailCtrl', function ($scope, $http, $location, $r
     for (var i = 0 ; i < review.changes.length; i++) {
       var change = review.changes[i];
 
-      ReviewInterfaceClient.createDiffBoxWithInlineComments(i, StringUtils.b64_to_utf8(change.udiff), change.comments);
+      ReviewInterfaceClient.createDiffBoxWithInlineComments(i, StringUtils.b64_to_utf8(change.udiff), change.comments)($scope, $compile);
     }
 
   });
@@ -40,6 +43,18 @@ reviewsApp.controller('UserCtrl', function ($scope, $http) {
   });
 
 });
+
+reviewsApp.controller('CommentPostController', ['$scope', '$http', function ($scope, $http) {
+  $scope.submit = function() {
+    var comment = $('#inline-comment-form-clone').find("textarea").val();
+    console.log(comment);
+
+
+    //$http.post(apiBasePath + "/comments/").success(function(data) {
+    //});
+
+  };
+}]);
 
 var StringUtils = (function () {
     var constr = function () {
@@ -71,39 +86,56 @@ var ReviewInterfaceClient = (function () {
     };
 
     constr.getAvatarPicture = function(author) {
-      if (!author.avatarPicture) return "dist/img/avatar5.png";
+      if (!author.avatarPicture) return DEFAULT_AVATAR;
 
       return "data:image/png;base64," + author.avatarPicture;
     };
 
     constr.createDiffBoxWithInlineComments = function (diffId, uDiffString, comments) {
-      var diffArray = uDiffString.split(/\u21B5/g)||[];
+      return function (scope, compile) {
+        var diffArray = uDiffString.split(/\u21B5/g)||[];
 
-      $("#diff-boxes").append(_createDiffBoxString(diffId, diffArray));
+        $("#diff-boxes").append(_createDiffBoxString(diffId, diffArray));
 
-      _registerInlineCommentClickListener(diffId, diffArray);
+        _registerInlineCommentClickListener(diffId, diffArray)(scope, compile);
 
-      if (comments) {
-        for (var i = 0; i < comments.length; i++) {
-          var comment = comments[i].comment;
-          $(_createInlineCommentBoxString(comment._id,comment.text, comment.author.refId, comment.modificationDate)).insertAfter('#diff'+diffId+'-' + comment.change.line);
+        if (comments) {
+          for (var i = 0; i < comments.length; i++) {
+            var comment = comments[i].comment;
+            $(_createInlineCommentBoxString(comment._id,comment.text, comment.author.refId, comment.modificationDate)).insertAfter('#diff'+diffId+'-' + comment.change.line);
+          }
         }
-      }
+      };
     };
 
-    this._insertInlineCommentFormAfterLine = function (diffId, line) {
+    this._insertInlineCommentFormAfterLine = function (diffId, line, scope, compile) {
       return function () {
-        $('.inline-comment-form').hide();
-        $('.inline-comment-form-textarea').val('');
-        $('.inline-comment-form').insertAfter('#diff'+diffId+'-' + line);
-        $('.inline-comment-form').show();
+        $('#inline-comment-form-clone').remove();
+
+        var inlineCommentFormCopy = $('.inline-comment-form').clone();
+        inlineCommentFormCopy.attr("id", "inline-comment-form-clone");
+        inlineCommentFormCopy.find("textarea").wysihtml5();
+
+        //inlineCommentFormCopy.find("form").attr("ng-controller", "CommentPostController");
+        //inlineCommentFormCopy.find("form").attr("ng-submit", "submit()");
+        //inlineCommentFormCopy.find("button").first().attr("type", "submit");
+        //inlineCommentFormCopy.find("button").first().attr("id", "submit");
+        //inlineCommentFormCopy.find("textarea").attr("ng-model", "comment.text");
+        inlineCommentFormCopy.insertAfter('#diff'+diffId+'-' + line);
+        inlineCommentFormCopy.show();
+
+        compile(inlineCommentFormCopy)(scope);
+
+        $('#inline-comment-form-cancel').click(function() { $('#inline-comment-form-clone').remove(); });
       };
     };
 
     this._registerInlineCommentClickListener = function (diffId, diffArray) {
-      for (var i = 1; i < diffArray.length -3; i++) {
-        $('#diff'+diffId+'-' + i).click(_insertInlineCommentFormAfterLine(diffId, i));
-      }
+      return function (scope, compile) {
+        for (var i = 1; i < diffArray.length -3; i++) {
+          $('#diff'+diffId+'-' + i).click(_insertInlineCommentFormAfterLine(diffId, i, scope, compile));
+        }
+      };
     };
 
     this._createDiffBoxString = function (diffId, diffArray) {
