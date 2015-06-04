@@ -26,7 +26,7 @@ reviewsApp.controller('ReviewDetailCtrl', function ($scope, $http, $location, $r
     for (var i = 0 ; i < review.changes.length; i++) {
       var change = review.changes[i];
 
-      ReviewInterfaceClient.createDiffBoxWithInlineComments(i, StringUtils.b64_to_utf8(change.udiff), change.comments)($scope, $compile);
+      ReviewInterfaceClient.createDiffBoxWithInlineComments(change.id, StringUtils.b64_to_utf8(change.udiff), change.comments)($scope, $compile);
     }
 
   });
@@ -46,12 +46,38 @@ reviewsApp.controller('UserCtrl', function ($scope, $http) {
 
 reviewsApp.controller('CommentPostController', ['$scope', '$http', function ($scope, $http) {
   $scope.submit = function() {
-    var comment = $('#inline-comment-form-clone').find("textarea").val();
-    console.log(comment);
+    var commentText = $('#inline-comment-form-clone').find("textarea").val();
+    var lineId = $('#inline-comment-form-clone').prev().attr("id");
+    var line = parseInt(lineId.substring(lineId.lastIndexOf("_")+1));
+    var changeId = lineId.substring(lineId.indexOf("_")+1,lineId.lastIndexOf("_"));
 
+    var newComment = {};
+    newComment.text = commentText;
+    newComment.review = {'refId': $scope.reviewDetail._id};
+    newComment.change = {'refId': changeId, 'line': line};
 
-    //$http.post(apiBasePath + "/comments/").success(function(data) {
-    //});
+    $http.post(apiBasePath + "/comments/", newComment).
+    success(function(data, status, headers, config) {
+      // this callback will be called asynchronously
+      // when the response is available
+
+      if (data.comment) {
+        $(ReviewInterfaceClient.createInlineCommentBoxString(data.comment._id,data.comment.text, data.comment.author.refId, data.comment.modificationDate))
+        .insertAfter('#'+lineId);
+
+        $('#inline-comment-form-clone').remove();
+      }
+
+      console.log(status);
+    }).
+    error(function(data, status, headers, config) {
+      // called asynchronously if an error occurs
+      // or server returns response with an error status.
+      if (data.errors)
+        for (var k in data.errors) {
+          console.log(data.errors[k].message + " - code:" + data.errors[k].code);
+        }
+    });
 
   };
 }]);
@@ -73,8 +99,10 @@ var StringUtils = (function () {
 })();
 
 var ReviewInterfaceClient = (function () {
+    var self;
     var constr = function () {
         // the constructor
+        self = this;
     };
 
     constr.getReviewStatusClass = function(reviewStatus) {
@@ -102,7 +130,7 @@ var ReviewInterfaceClient = (function () {
         if (comments) {
           for (var i = 0; i < comments.length; i++) {
             var comment = comments[i].comment;
-            $(_createInlineCommentBoxString(comment._id,comment.text, comment.author.refId, comment.modificationDate)).insertAfter('#diff'+diffId+'-' + comment.change.line);
+            $(constr.createInlineCommentBoxString(comment._id,comment.text, comment.author.refId, comment.modificationDate)).insertAfter('#diff_'+diffId+'_' + comment.change.line);
           }
         }
       };
@@ -121,7 +149,7 @@ var ReviewInterfaceClient = (function () {
         //inlineCommentFormCopy.find("button").first().attr("type", "submit");
         //inlineCommentFormCopy.find("button").first().attr("id", "submit");
         //inlineCommentFormCopy.find("textarea").attr("ng-model", "comment.text");
-        inlineCommentFormCopy.insertAfter('#diff'+diffId+'-' + line);
+        inlineCommentFormCopy.insertAfter('#diff_'+diffId+'_' + line);
         inlineCommentFormCopy.show();
 
         compile(inlineCommentFormCopy)(scope);
@@ -133,7 +161,7 @@ var ReviewInterfaceClient = (function () {
     this._registerInlineCommentClickListener = function (diffId, diffArray) {
       return function (scope, compile) {
         for (var i = 1; i < diffArray.length -3; i++) {
-          $('#diff'+diffId+'-' + i).click(_insertInlineCommentFormAfterLine(diffId, i, scope, compile));
+          $('#diff_'+diffId+'_' + i).click(_insertInlineCommentFormAfterLine(diffId, i, scope, compile));
         }
       };
     };
@@ -148,7 +176,7 @@ var ReviewInterfaceClient = (function () {
         if (diffArray[i+2].startsWith("+"))
           mode = "2";
         var l = i -1;
-        diffLines += "<div id='diff"+diffId+"-"+l+"' class='diff"+ mode +"'>"+ diffArray[i + 2] + "</div>";
+        diffLines += "<div id='diff_"+diffId+"_"+l+"' class='diff"+ mode +"'>"+ diffArray[i + 2] + "</div>";
       }
 
       return "<div class='row'> \
@@ -170,7 +198,7 @@ var ReviewInterfaceClient = (function () {
 
     };
 
-    this._createInlineCommentBoxString = function (commentId, commentText, author, creationDate) {
+    constr.createInlineCommentBoxString = function (commentId, commentText, author, creationDate) {
         return '<div id="inline-comment-'+commentId+'" class="box"> \
                 <div class="box-header with-border"> \
                 <span><b>'+author+'</b> added a note at '+creationDate+'</span> \

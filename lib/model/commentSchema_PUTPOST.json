@@ -13,10 +13,7 @@
      "idReferences": {
         "type": "object",
         "properties": {
-          "refId": {
-            "format": "uri",
-            "type": "string"
-          }
+          "refId": {"type": "string","minLength":1}
         },
         "additionalProperties": false,
         "required": ["refId"]

@@ -109,7 +109,7 @@ var ReviewRESTService = (function () {
           var change = req.body.changes[i];
           // Calculate line count for every udiff change
           change.lineCount = self.utils.getUdiffLineCount(change.udiff);
-          // Generate random RFC4122 v6 UUIDs for every change
+          // Generate random RFC4122 v4 UUIDs for every change
           change.id = uuid.v4();
         }
 
@@ -121,7 +121,7 @@ var ReviewRESTService = (function () {
 
         self.reviewDAO.createReview(req.body, function (err, review) {
           if (err) res.send(err);
-          res.json({ message: 'Review successfully created!', 'review': JSON.stringify(review) });
+          res.json({ message: 'Review successfully created!', 'review': review });
         });
       };
     };
@@ -201,7 +201,7 @@ var UserRESTService = (function () {
 
         self.userDAO.createUser(req.body, function (err, user) {
           if (err) res.send(err);
-          res.json({ message: 'User successfully created!', 'review': JSON.stringify(user) });
+          res.json({ message: 'User successfully created!', 'review': user });
         });
       };
     };
@@ -287,7 +287,7 @@ var CommentRESTService = (function () {
 
           _updateCommentReferencesInReview(comment);
 
-          res.json({ message: 'Comment successfully created!', 'review': JSON.stringify(comment) });
+          res.json({ message: 'Comment successfully created!', 'comment': comment });
         });
       };
     };
