@@ -198,6 +198,19 @@
   </form>
 </div>
 
+<div id="inline-comment-box" class="box">
+  <div class="box-header with-border">
+      <span><b>'+author+'</b> added a note at '+creationDate+'</span>
+      <div class="box-tools pull-right">
+        <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-pencil"></i></button>
+        <button id="button-remove" class="btn btn-box-tool" data-widget="remove">
+          <i class="fa fa-times"></i>
+        </button>
+      </div>
+  </div><!-- /.box-header -->
+  <div class="box-body"></div>
+</div><!-- /.box -->
+
 <script type="text/javascript">
 
    function loadCSS(filename){
@@ -231,6 +244,7 @@
 
 //bootstrap WYSIHTML5 - text editor
 $("#wysihtml5-textarea").wysihtml5();
+$('#inline-comment-box').hide();
 $('.inline-comment-form').hide();
 
 </script>

@@ -26,7 +26,7 @@ reviewsApp.controller('ReviewDetailCtrl', function ($scope, $http, $location, $r
     for (var i = 0 ; i < review.changes.length; i++) {
       var change = review.changes[i];
 
-      ReviewInterfaceClient.createDiffBoxWithInlineComments(change.id, StringUtils.b64_to_utf8(change.udiff), change.comments)($scope, $compile);
+      ReviewInterfaceClient.createDiffBoxWithInlineComments(change.id, StringUtils.b64_to_utf8(change.udiff), change.comments)($scope, $http, $compile);
     }
 
   });
@@ -62,8 +62,7 @@ reviewsApp.controller('CommentPostController', ['$scope', '$http', function ($sc
       // when the response is available
 
       if (data.comment) {
-        $(ReviewInterfaceClient.createInlineCommentBoxString(data.comment._id,data.comment.text, data.comment.author.refId, data.comment.modificationDate))
-        .insertAfter('#'+lineId);
+        ReviewInterfaceClient.createInlineCommentBoxString(data.comment._id,data.comment.text, data.comment.author.refId, data.comment.modificationDate, line, changeId);
 
         $('#inline-comment-form-clone').remove();
       }
@@ -120,7 +119,7 @@ var ReviewInterfaceClient = (function () {
     };
 
     constr.createDiffBoxWithInlineComments = function (diffId, uDiffString, comments) {
-      return function (scope, compile) {
+      return function (scope, http, compile) {
         var diffArray = uDiffString.split(/\u21B5/g)||[];
 
         $("#diff-boxes").append(_createDiffBoxString(diffId, diffArray));
@@ -128,9 +127,40 @@ var ReviewInterfaceClient = (function () {
         _registerInlineCommentClickListener(diffId, diffArray)(scope, compile);
 
         if (comments) {
-          for (var i = 0; i < comments.length; i++) {
+          //for (var i = 0; i < comments.length; i++) {
+        //    var comment = comments[i].comment;
+          for (var i in comments) {
             var comment = comments[i].comment;
-            $(constr.createInlineCommentBoxString(comment._id,comment.text, comment.author.refId, comment.modificationDate)).insertAfter('#diff_'+diffId+'_' + comment.change.line);
+            var cid = comment._id;
+
+            //$(constr.createInlineCommentBoxString(comment._id,comment.text, comment.author.refId, comment.modificationDate)).insertAfter('#diff_'+diffId+'_' + comment.change.line);
+            constr.createInlineCommentBoxString(cid, comment.text, comment.author.refId, comment.modificationDate, comment.change.line, diffId);
+
+            $("#button-remove-"+ cid).click(function(comment) {
+              return function(ev) {
+              if(!confirm('Are you sure you want to delete this comment?')) return;
+
+              console.log("deleting comment " + comment._id + " " + comment.text);
+
+              http.delete(apiBasePath + "/comments/" + comment._id).
+              success(function(data, status, headers, config) {
+                // this callback will be called asynchronously
+                // when the response is available
+                $('#inline-comment-' + comment._id).remove();
+                console.log(status);
+              }).
+              error(function(data, status, headers, config) {
+                // called asynchronously if an error occurs
+                // or server returns response with an error status.
+                if (data.errors)
+                  for (var k in data.errors) {
+                    console.log(data.errors[k].message + " - code:" + data.errors[k].code);
+                  }
+              });
+
+            };
+
+          }(comment));
           }
         }
       };
@@ -198,19 +228,33 @@ var ReviewInterfaceClient = (function () {
 
     };
 
+    /*
     constr.createInlineCommentBoxString = function (commentId, commentText, author, creationDate) {
         return '<div id="inline-comment-'+commentId+'" class="box"> \
                 <div class="box-header with-border"> \
                 <span><b>'+author+'</b> added a note at '+creationDate+'</span> \
                 <div class="box-tools pull-right"> \
                 <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-pencil"></i></button> \
-                <button class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button> \
+                <button id="button-remove-'+commentId+'" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button> \
                 </div> \
                 </div><!-- /.box-header --> \
                 <div class="box-body"> \
                 '+commentText+' \
                 </div> \
                 </div><!-- /.box -->';
+    };
+    */
+
+    constr.createInlineCommentBoxString = function (commentId, commentText, author, creationDate, line, changeId) {
+
+        var inlineCommentBoxCopy = $('#inline-comment-box').clone();
+        inlineCommentBoxCopy.attr("id", "inline-comment-"+commentId);
+        inlineCommentBoxCopy.find(".box-body").text(commentText);
+        inlineCommentBoxCopy.find("#button-remove").attr("id", "button-remove-"+commentId);
+        inlineCommentBoxCopy.find("span").html('<b>'+author+'</b> added a note at '+creationDate+'');
+        inlineCommentBoxCopy.insertAfter('#diff_' + changeId + '_'+ line);
+        inlineCommentBoxCopy.show();
+
     };
 
     return constr;

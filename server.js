@@ -251,9 +251,17 @@ var CommentRESTService = (function () {
 
     constr.prototype.deleteComment = function () {
       return function(req, res) {
-        self.commentDAO.deleteComment(req.params.comment_id, function (err, numRemoved) {
+        self.commentDAO.getComment(req.params.comment_id, function (err, comment) {
           if (err) res.send(err);
-            res.json({ message: 'Comment successfully deleted!'});
+
+          self.commentDAO.deleteComment(req.params.comment_id, function (err, numRemoved) {
+            if (err) res.send(err);
+
+              _deleteCommentReferencesInReview(comment[0]);
+
+              res.json({ message: 'Comment successfully deleted!'});
+          });
+
         });
        };
     };
@@ -320,13 +328,44 @@ var CommentRESTService = (function () {
 
     };
 
+    var _deleteCommentReferencesInReview = function (comment) {
+      var reviewRefId = comment.review.refId.substring(comment.review.refId.lastIndexOf('/')+1);
+
+      if (comment.change === undefined) {
+
+      } else if (comment.change != undefined) {
+
+        self.reviewDAO.getReview(reviewRefId, function (err, fetchedReview) {
+          for(var i = 0 ; i < fetchedReview[0].changes.length; i++){
+            var change = fetchedReview[0].changes[i];
+
+            if (change.id === comment.change.refId) {
+
+              for (var k in change.comments) {
+                if (change.comments[k].refId === comment._id) {
+                  change.comments.splice(k, 1);
+                  if (change.comments.length === 0) {
+                    delete change.comments;
+                  }
+                }
+              }
+            }
+          }
+
+          self.reviewDAO.updateReview(reviewRefId, fetchedReview[0], function (err, numReplaced) {
+          });
+        });
+
+      }
+    };
+
     return constr;
 })();
 
 // DAOs
 var ReviewDAO = (function () {
     var self;
-    var constr = function (userDbService) {
+    var constr = function (reviewDbService) {
       this.dbservice = reviewDbService;
       self = this;
     };
@@ -341,6 +380,12 @@ var ReviewDAO = (function () {
 
     constr.prototype.updateReview = function (id, newReview, callback) {
       self.dbservice.update({ _id : id }, newReview, function (err, numReplaced) {
+        callback(err, numReplaced);
+      });
+    };
+
+    constr.prototype.updateReview2 = function (queryObject, updateObject, callback) {
+      self.dbservice.update(queryObject, updateObject, function (err, numReplaced) {
         callback(err, numReplaced);
       });
     };
@@ -487,7 +532,7 @@ var DbService = (function () {
 
     constr.prototype.delete = function (queryJsonObject, callback) {
       this.db.remove(queryJsonObject, {}, function (err, numRemoved) {
-        callback(err, numReplaced);
+        callback(err, numRemoved);
       });
     };
 
