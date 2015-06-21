@@ -626,6 +626,13 @@ var securityRedirect = function (req, res, next){
   }
 }
 
+var noCache = function (req, res, next){
+  res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+  res.header('Expires', '-1');
+  res.header('Pragma', 'no-cache');
+  next();
+}
+
 app.post('/web/pages/examples/login.html', auth, function (req, res){
   var redirectUrl = req.session.redirectUrl ? req.session.redirectUrl : '/';
   delete req.session.redirectUrl;
@@ -640,9 +647,7 @@ app.use('/api/v1', securityRedirect, router);
 
 app.set("view options", {layout: false});
 
-app.get('/web', securityRedirect, function(req, res, next) {
-  next();
-});
+app.get('/web', securityRedirect, noCache);
 
 app.get('/logout', function(req, res){
   req.logout();
