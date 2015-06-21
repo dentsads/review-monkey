@@ -9,6 +9,7 @@ var async         = require("async");
 var fs            = require("fs");
 var uuid          = require('node-uuid');
 var helpers       = require('./lib/helpers');
+var config       = require('./config.json');
 
 var app           = express();
 
@@ -653,7 +654,7 @@ app.get('/', function(req, res, next) {
 });
 app.use('/web', express.static(__dirname + '/web'));
 
-var server = app.listen(3000, function () {
+var server = app.listen(config['web-server-port'] || 3000, function () {
 
   var host = server.address().address;
   var port = server.address().port;
